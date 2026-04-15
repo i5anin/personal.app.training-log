@@ -1,0 +1,82 @@
+import type { Workout } from '@/types'
+
+export function suggestExercises(
+  exerciseIds: string[],
+  selectedMuscleGroups: string[],
+  allExercises: { id: string; name: string; muscleGroups: string[] }[],
+  allWorkouts: Workout[],
+  query: string,
+): string[] {
+  const freq = new Map<string, number>()
+  for (const w of allWorkouts) {
+    for (const e of w.entries) {
+      freq.set(e.exerciseId, (freq.get(e.exerciseId) || 0) + 1)
+    }
+  }
+
+  let candidates = allExercises
+  if (selectedMuscleGroups.length > 0) {
+    const matching = allExercises.filter((e) =>
+      e.muscleGroups.some((mg) => selectedMuscleGroups.includes(mg)),
+    )
+    const rest = allExercises.filter(
+      (e) => !e.muscleGroups.some((mg) => selectedMuscleGroups.includes(mg)),
+    )
+    candidates = [...matching, ...rest]
+  }
+
+  if (query) {
+    const q = query.toLowerCase()
+    candidates = candidates.filter((e) => e.name.toLowerCase().includes(q))
+  }
+
+  candidates.sort((a, b) => {
+    const aMatch = selectedMuscleGroups.length > 0 && a.muscleGroups.some((mg) => selectedMuscleGroups.includes(mg))
+    const bMatch = selectedMuscleGroups.length > 0 && b.muscleGroups.some((mg) => selectedMuscleGroups.includes(mg))
+    if (aMatch !== bMatch) return aMatch ? -1 : 1
+    return (freq.get(b.id) || 0) - (freq.get(a.id) || 0)
+  })
+
+  return candidates.map((e) => e.id)
+}
+
+export function suggestReps(exerciseId: string, allWorkouts: Workout[]): number[] {
+  const freq = new Map<number, number>()
+  for (const w of allWorkouts) {
+    for (const entry of w.entries) {
+      if (entry.exerciseId === exerciseId) {
+        for (const s of entry.sets) {
+          freq.set(s.reps, (freq.get(s.reps) || 0) + 1)
+        }
+      }
+    }
+  }
+
+  if (freq.size === 0) return [15, 12, 10, 8]
+
+  return [...freq.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([reps]) => reps)
+}
+
+export function suggestWeight(exerciseId: string, allWorkouts: Workout[]): { last: number; max: number } {
+  let last = 0
+  let max = 0
+  let lastWorkoutId = -1
+
+  for (const w of allWorkouts) {
+    for (const entry of w.entries) {
+      if (entry.exerciseId === exerciseId) {
+        for (const s of entry.sets) {
+          if (s.weight > max) max = s.weight
+          if (w.id > lastWorkoutId) {
+            lastWorkoutId = w.id
+            last = s.weight
+          }
+        }
+      }
+    }
+  }
+
+  return { last, max }
+}

@@ -1,0 +1,75 @@
+import type { MuscleGroup, Exercise } from '@/types'
+
+export const defaultMuscleGroups: MuscleGroup[] = [
+  { id: 'chest', label: 'Грудь' },
+  { id: 'back', label: 'Спина' },
+  { id: 'shoulders', label: 'Плечи' },
+  { id: 'arms', label: 'Руки' },
+  { id: 'legs', label: 'Ноги' },
+  { id: 'core', label: 'Пресс' },
+  { id: 'cardio', label: 'Кардио' },
+]
+
+export const defaultExercises: Exercise[] = [
+  // Грудь
+  { id: 'bench-press', name: 'Жим лежа', muscleGroups: ['chest'] },
+  { id: 'incline-bench-press', name: 'Жим лежа наклонный', muscleGroups: ['chest', 'shoulders'] },
+  { id: 'dumbbell-fly', name: 'Разводка гантелей', muscleGroups: ['chest'] },
+  { id: 'chest-press-machine', name: 'Жим в тренажере', muscleGroups: ['chest'] },
+  { id: 'push-ups', name: 'Отжимания', muscleGroups: ['chest', 'arms'] },
+  { id: 'cable-crossover', name: 'Кроссовер', muscleGroups: ['chest'] },
+  { id: 'dips', name: 'Брусья', muscleGroups: ['chest', 'arms'] },
+
+  // Спина
+  { id: 'pull-ups', name: 'Подтягивания', muscleGroups: ['back', 'arms'] },
+  { id: 'lat-pulldown', name: 'Тяга верхнего блока', muscleGroups: ['back'] },
+  { id: 'barbell-row', name: 'Тяга штанги в наклоне', muscleGroups: ['back'] },
+  { id: 'dumbbell-row', name: 'Тяга гантели в наклоне', muscleGroups: ['back'] },
+  { id: 'cable-row', name: 'Тяга нижнего блока', muscleGroups: ['back'] },
+  { id: 'deadlift', name: 'Становая тяга', muscleGroups: ['back', 'legs'] },
+  { id: 'hyperextension', name: 'Гиперэкстензия', muscleGroups: ['back', 'core'] },
+  { id: 't-bar-row', name: 'Тяга Т-грифа', muscleGroups: ['back'] },
+
+  // Плечи
+  { id: 'overhead-press', name: 'Жим стоя', muscleGroups: ['shoulders'] },
+  { id: 'dumbbell-shoulder-press', name: 'Жим гантелей сидя', muscleGroups: ['shoulders'] },
+  { id: 'lateral-raise', name: 'Махи в стороны', muscleGroups: ['shoulders'] },
+  { id: 'front-raise', name: 'Махи перед собой', muscleGroups: ['shoulders'] },
+  { id: 'rear-delt-fly', name: 'Разводка на заднюю дельту', muscleGroups: ['shoulders'] },
+  { id: 'face-pull', name: 'Фейс-пул', muscleGroups: ['shoulders', 'back'] },
+  { id: 'shrugs', name: 'Шраги', muscleGroups: ['shoulders'] },
+
+  // Руки
+  { id: 'bicep-curl', name: 'Сгибания на бицепс', muscleGroups: ['arms'] },
+  { id: 'hammer-curl', name: 'Молотки', muscleGroups: ['arms'] },
+  { id: 'tricep-pushdown', name: 'Разгибания на трицепс', muscleGroups: ['arms'] },
+  { id: 'overhead-tricep', name: 'Французский жим', muscleGroups: ['arms'] },
+  { id: 'preacher-curl', name: 'Сгибания на скамье Скотта', muscleGroups: ['arms'] },
+  { id: 'barbell-curl', name: 'Сгибания со штангой', muscleGroups: ['arms'] },
+
+  // Ноги
+  { id: 'squat', name: 'Приседания', muscleGroups: ['legs'] },
+  { id: 'leg-press', name: 'Жим ногами', muscleGroups: ['legs'] },
+  { id: 'lunges', name: 'Выпады', muscleGroups: ['legs'] },
+  { id: 'leg-extension', name: 'Разгибания ног', muscleGroups: ['legs'] },
+  { id: 'leg-curl', name: 'Сгибания ног', muscleGroups: ['legs'] },
+  { id: 'calf-raise', name: 'Подъемы на носки', muscleGroups: ['legs'] },
+  { id: 'romanian-deadlift', name: 'Румынская тяга', muscleGroups: ['legs', 'back'] },
+  { id: 'hack-squat', name: 'Гакк-приседания', muscleGroups: ['legs'] },
+  { id: 'bulgarian-split-squat', name: 'Болгарские выпады', muscleGroups: ['legs'] },
+  { id: 'hip-thrust', name: 'Ягодичный мост', muscleGroups: ['legs'] },
+
+  // Пресс
+  { id: 'crunch', name: 'Скручивания', muscleGroups: ['core'] },
+  { id: 'plank', name: 'Планка', muscleGroups: ['core'] },
+  { id: 'leg-raise', name: 'Подъемы ног', muscleGroups: ['core'] },
+  { id: 'russian-twist', name: 'Русские скручивания', muscleGroups: ['core'] },
+  { id: 'cable-crunch', name: 'Скручивания на блоке', muscleGroups: ['core'] },
+
+  // Кардио
+  { id: 'treadmill', name: 'Беговая дорожка', muscleGroups: ['cardio'] },
+  { id: 'elliptical', name: 'Эллипс', muscleGroups: ['cardio'] },
+  { id: 'bike', name: 'Велотренажер', muscleGroups: ['cardio'] },
+  { id: 'rowing', name: 'Гребной тренажер', muscleGroups: ['cardio', 'back'] },
+  { id: 'jump-rope', name: 'Скакалка', muscleGroups: ['cardio', 'legs'] },
+]
