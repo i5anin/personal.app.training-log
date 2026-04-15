@@ -4,8 +4,8 @@
     {
       "name": "gym-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "E:/development/gym777"],
-      "port": 5173
+      "runtimeArgs": ["run", "dev:client", "--prefix", "E:/development/gym777"],
+      "port": 4173
     }
   ]
 }
