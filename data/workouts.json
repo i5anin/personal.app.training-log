@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "date": "2026-04-15",
+    "muscleGroups": [
+      "back"
+    ],
+    "entries": [
+      {
+        "id": "test",
+        "exerciseId": "pull-ups",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "date": "2026-04-15",
+    "muscleGroups": [
+      "chest"
+    ],
+    "entries": [
+      {
+        "id": "2jED4uVYFlGlgBQFwVoMw",
+        "exerciseId": "bench-press",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 0
+          }
+        ]
+      }
+    ],
+    "description": ""
+  }
+]

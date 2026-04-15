@@ -1,24 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { nanoid } from 'nanoid'
-import { savePhoto, getPhoto, deletePhoto } from '@/db'
+import { savePhoto, getPhotoUrl, deletePhoto } from '@/db'
 
 const props = defineProps<{ photoIds: string[] }>()
 const emit = defineEmits<{ update: [ids: string[]] }>()
 
 const previews = ref<Map<string, string>>(new Map())
 
-async function loadPreviews() {
+function loadPreviews() {
   for (const id of props.photoIds) {
     if (!previews.value.has(id)) {
-      const rec = await getPhoto(id)
-      if (rec) {
-        previews.value.set(id, URL.createObjectURL(rec.thumbnail))
-      }
+      previews.value.set(id, getPhotoUrl(id))
     }
   }
 }
 loadPreviews()
+watch(() => props.photoIds, loadPreviews)
 
 async function onFileSelect(e: Event) {
   const files = (e.target as HTMLInputElement).files
@@ -27,10 +25,10 @@ async function onFileSelect(e: Event) {
 
   for (const file of files) {
     const id = nanoid()
-    const { full, thumb } = await resizeImage(file)
-    await savePhoto({ id, blob: full, thumbnail: thumb, createdAt: new Date().toISOString() })
+    const resized = await resizeImage(file)
+    await savePhoto({ id, blob: resized })
     newIds.push(id)
-    previews.value.set(id, URL.createObjectURL(thumb))
+    previews.value.set(id, getPhotoUrl(id))
   }
 
   emit('update', newIds)
@@ -38,19 +36,15 @@ async function onFileSelect(e: Event) {
 
 async function removePhoto(id: string) {
   await deletePhoto(id)
-  const url = previews.value.get(id)
-  if (url) URL.revokeObjectURL(url)
   previews.value.delete(id)
   emit('update', props.photoIds.filter((pid) => pid !== id))
 }
 
-function resizeImage(file: File): Promise<{ full: Blob; thumb: Blob }> {
+function resizeImage(file: File): Promise<Blob> {
   return new Promise((resolve) => {
     const img = new Image()
     img.onload = () => {
-      const full = drawToBlob(img, 1920)
-      const thumb = drawToBlob(img, 200)
-      Promise.all([full, thumb]).then(([f, t]) => resolve({ full: f, thumb: t }))
+      drawToBlob(img, 1920).then(resolve)
     }
     img.src = URL.createObjectURL(file)
   })
@@ -74,7 +68,7 @@ function drawToBlob(img: HTMLImageElement, maxSize: number): Promise<Blob> {
   <div class="photo-attach">
     <div class="photo-previews" v-if="photoIds.length">
       <div v-for="id in photoIds" :key="id" class="photo-thumb">
-        <img v-if="previews.get(id)" :src="previews.get(id)" />
+        <img :src="previews.get(id)" />
         <button class="photo-remove" @click="removePhoto(id)">✕</button>
       </div>
     </div>

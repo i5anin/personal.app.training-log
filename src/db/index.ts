@@ -1,140 +1,82 @@
-import { openDB, type IDBPDatabase } from 'idb'
-import type { Workout, Exercise, MuscleGroup, PhotoRecord } from '@/types'
-import { defaultMuscleGroups, defaultExercises } from './seed'
+import type { Workout, Exercise, MuscleGroup } from '@/types'
 
-const DB_NAME = 'gym-plus-db'
-const DB_VERSION = 1
+const API = '/api'
 
-let dbPromise: Promise<IDBPDatabase> | null = null
-
-function getDB() {
-  if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        const workoutStore = db.createObjectStore('workouts', { keyPath: 'id' })
-        workoutStore.createIndex('date', 'date')
-
-        const exerciseStore = db.createObjectStore('exercises', { keyPath: 'id' })
-        exerciseStore.createIndex('muscleGroups', 'muscleGroups', { multiEntry: true })
-
-        db.createObjectStore('muscleGroups', { keyPath: 'id' })
-        db.createObjectStore('photos', { keyPath: 'id' })
-        db.createObjectStore('settings', { keyPath: 'key' })
-      },
-    })
-  }
-  return dbPromise
+async function json<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API}${url}`, init)
+  return res.json()
 }
 
-export async function initDB() {
-  const db = await getDB()
-
-  const existingGroups = await db.getAll('muscleGroups')
-  if (existingGroups.length === 0) {
-    const tx = db.transaction('muscleGroups', 'readwrite')
-    for (const mg of defaultMuscleGroups) {
-      await tx.store.put(mg)
-    }
-    await tx.done
-  }
-
-  const existingExercises = await db.getAll('exercises')
-  if (existingExercises.length === 0) {
-    const tx = db.transaction('exercises', 'readwrite')
-    for (const ex of defaultExercises) {
-      await tx.store.put(ex)
-    }
-    await tx.done
-  }
+function post(url: string, body: unknown) {
+  return json(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
 }
+
+// Init — no-op, server seeds data on startup
+export async function initDB() {}
 
 // Workouts
 export async function getAllWorkouts(): Promise<Workout[]> {
-  const db = await getDB()
-  return db.getAll('workouts')
+  return json('/workouts')
 }
 
 export async function getWorkout(id: number): Promise<Workout | undefined> {
-  const db = await getDB()
-  return db.get('workouts', id)
+  const result = await json<Workout | null>(`/workouts/${id}`)
+  return result ?? undefined
 }
 
 export async function getNextWorkoutId(): Promise<number> {
-  const db = await getDB()
-  const all = await db.getAllKeys('workouts')
-  if (all.length === 0) return 1
-  return (Math.max(...(all as number[])) + 1)
+  const { id } = await json<{ id: number }>('/workouts/next-id')
+  return id
 }
 
 export async function saveWorkout(workout: Workout): Promise<void> {
-  const db = await getDB()
-  await db.put('workouts', workout)
+  await post('/workouts', workout)
 }
 
 export async function deleteWorkout(id: number): Promise<void> {
-  const db = await getDB()
-  await db.delete('workouts', id)
+  await json(`/workouts/${id}`, { method: 'DELETE' })
 }
 
 // Exercises
 export async function getAllExercises(): Promise<Exercise[]> {
-  const db = await getDB()
-  return db.getAll('exercises')
+  return json('/exercises')
 }
 
 export async function saveExercise(exercise: Exercise): Promise<void> {
-  const db = await getDB()
-  await db.put('exercises', exercise)
+  await post('/exercises', exercise)
 }
 
 // Muscle Groups
 export async function getAllMuscleGroups(): Promise<MuscleGroup[]> {
-  const db = await getDB()
-  return db.getAll('muscleGroups')
+  return json('/muscle-groups')
 }
 
 // Photos
-export async function savePhoto(photo: PhotoRecord): Promise<void> {
-  const db = await getDB()
-  await db.put('photos', photo)
+export async function savePhoto(photo: { id: string; blob: Blob }): Promise<void> {
+  const form = new FormData()
+  form.append('id', photo.id)
+  form.append('file', photo.blob, `${photo.id}.jpg`)
+  await fetch(`${API}/photos`, { method: 'POST', body: form })
 }
 
-export async function getPhoto(id: string): Promise<PhotoRecord | undefined> {
-  const db = await getDB()
-  return db.get('photos', id)
+export function getPhotoUrl(id: string): string {
+  return `${API}/photos/${id}`
 }
 
 export async function deletePhoto(id: string): Promise<void> {
-  const db = await getDB()
-  await db.delete('photos', id)
+  await json(`/photos/${id}`, { method: 'DELETE' })
 }
 
-// Export/Import
+// Export
 export async function exportAll() {
-  const db = await getDB()
-  return {
-    version: 1,
-    workouts: await db.getAll('workouts'),
-    exercises: await db.getAll('exercises'),
-    muscleGroups: await db.getAll('muscleGroups'),
-  }
+  return json('/export')
 }
 
+// Import
 export async function importAll(data: { workouts: Workout[]; exercises: Exercise[]; muscleGroups: MuscleGroup[] }) {
-  const db = await getDB()
-
-  const tx1 = db.transaction('muscleGroups', 'readwrite')
-  await tx1.store.clear()
-  for (const mg of data.muscleGroups) await tx1.store.put(mg)
-  await tx1.done
-
-  const tx2 = db.transaction('exercises', 'readwrite')
-  await tx2.store.clear()
-  for (const ex of data.exercises) await tx2.store.put(ex)
-  await tx2.done
-
-  const tx3 = db.transaction('workouts', 'readwrite')
-  await tx3.store.clear()
-  for (const w of data.workouts) await tx3.store.put(w)
-  await tx3.done
+  await post('/import', data)
 }

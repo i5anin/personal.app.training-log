@@ -1,0 +1,30 @@
+[
+  {
+    "id": "chest",
+    "label": "Грудь"
+  },
+  {
+    "id": "back",
+    "label": "Спина"
+  },
+  {
+    "id": "shoulders",
+    "label": "Плечи"
+  },
+  {
+    "id": "arms",
+    "label": "Руки"
+  },
+  {
+    "id": "legs",
+    "label": "Ноги"
+  },
+  {
+    "id": "core",
+    "label": "Пресс"
+  },
+  {
+    "id": "cardio",
+    "label": "Кардио"
+  }
+]
