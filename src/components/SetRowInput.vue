@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { SetRow } from '@/types'
-import { useWorkoutStore } from '@/stores/workoutStore'
-import { suggestReps, suggestWeight } from '@/suggestions'
+import {computed} from 'vue'
+import type {SetRow} from '@/types'
+import {useWorkoutStore} from '@/stores/workoutStore'
+import {suggestReps, suggestWeight} from '@/suggestions'
 
 const props = defineProps<{
   modelValue: SetRow
@@ -21,16 +21,16 @@ const weightSugg = computed(() => suggestWeight(props.exerciseId, workoutStore.w
 
 function update(field: keyof SetRow, val: string) {
   const num = parseFloat(val) || 0
-  emit('update:modelValue', { ...props.modelValue, [field]: num })
+  emit('update:modelValue', {...props.modelValue, [field]: num})
 }
 
 function applyReps(r: number) {
-  emit('update:modelValue', { ...props.modelValue, reps: r })
+  emit('update:modelValue', {...props.modelValue, reps: r})
 }
 
 function applyWeight() {
   if (weightSugg.value.last > 0) {
-    emit('update:modelValue', { ...props.modelValue, weight: weightSugg.value.last })
+    emit('update:modelValue', {...props.modelValue, weight: weightSugg.value.last})
   }
 }
 </script>
@@ -40,35 +40,35 @@ function applyWeight() {
     <span class="set-num">{{ index + 1 }}.</span>
     <div class="field">
       <input
-        type="number"
-        :value="modelValue.reps || ''"
-        @input="update('reps', ($event.target as HTMLInputElement).value)"
-        placeholder="15"
-        class="num-input"
+          type="number"
+          :value="modelValue.weight || ''"
+          @input="update('weight', ($event.target as HTMLInputElement).value)"
+          :placeholder="weightSugg.last ? String(weightSugg.last) : '0'"
+          class="num-input"
+          @focus="!modelValue.weight && applyWeight()"
       />
-      <span class="label">повт</span>
+      <span class="label">кг</span>
     </div>
     <span class="x">×</span>
     <div class="field">
       <input
-        type="number"
-        :value="modelValue.weight || ''"
-        @input="update('weight', ($event.target as HTMLInputElement).value)"
-        :placeholder="weightSugg.last ? String(weightSugg.last) : '0'"
-        class="num-input"
-        @focus="!modelValue.weight && applyWeight()"
+          type="number"
+          :value="modelValue.reps || ''"
+          @input="update('reps', ($event.target as HTMLInputElement).value)"
+          placeholder="15"
+          class="num-input"
       />
-      <span class="label">кг</span>
+      <span class="label">повт</span>
     </div>
     <button class="remove-btn" @click="emit('remove')">✕</button>
   </div>
   <div class="chips" v-if="index === 0 && repsSuggestions.length > 0">
     <button
-      v-for="r in repsSuggestions.slice(0, 5)"
-      :key="r"
-      class="chip"
-      :class="{ active: modelValue.reps === r }"
-      @click="applyReps(r)"
+        v-for="r in repsSuggestions.slice(0, 5)"
+        :key="r"
+        class="chip"
+        :class="{ active: modelValue.reps === r }"
+        @click="applyReps(r)"
     >
       {{ r }}
     </button>

@@ -3,7 +3,7 @@
     "id": 1,
     "date": "2026-04-15",
     "muscleGroups": [
-      "back"
+      "shoulders"
     ],
     "entries": [
       {
@@ -12,7 +12,7 @@
         "sets": [
           {
             "reps": 15,
-            "weight": 0
+            "weight": 12
           }
         ]
       }
@@ -30,8 +30,138 @@
         "exerciseId": "bench-press",
         "sets": [
           {
-            "reps": 15,
+            "reps": 12,
             "weight": 0
+          },
+          {
+            "reps": 12,
+            "weight": 37.25
+          },
+          {
+            "reps": 8,
+            "weight": 47.5
+          },
+          {
+            "reps": 3,
+            "weight": 57.25
+          },
+          {
+            "reps": 1,
+            "weight": 67.5
+          }
+        ]
+      },
+      {
+        "id": "cXIbt3EyxMXDJwgLsIpgC",
+        "exerciseId": "dumbbell-shoulder-press",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 14
+          },
+          {
+            "reps": 12,
+            "weight": 18
+          },
+          {
+            "reps": 8,
+            "weight": 22
+          },
+          {
+            "reps": 10,
+            "weight": 10
+          },
+          {
+            "reps": 10,
+            "weight": 20
+          },
+          {
+            "reps": 8,
+            "weight": 10
+          }
+        ]
+      },
+      {
+        "id": "S46VpVSoUmC4NJeUVl3ju",
+        "exerciseId": "эл.-хамер",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 17.5
+          },
+          {
+            "reps": 15,
+            "weight": 22.5
+          },
+          {
+            "reps": 15,
+            "weight": 25
+          },
+          {
+            "reps": 15,
+            "weight": 25
+          }
+        ]
+      },
+      {
+        "id": "e-C_Atxl9vht0bwjlKrdH",
+        "exerciseId": "сведения-рук-бабочка",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 25
+          },
+          {
+            "reps": 15,
+            "weight": 30
+          },
+          {
+            "reps": 15,
+            "weight": 35
+          },
+          {
+            "reps": 12,
+            "weight": 40
+          }
+        ]
+      },
+      {
+        "id": "Z5hapFrS8zlhk5zvVlums",
+        "exerciseId": "выжимание-блина",
+        "sets": [
+          {
+            "reps": 20,
+            "weight": 5
+          },
+          {
+            "reps": 14,
+            "weight": 5
+          },
+          {
+            "reps": 12,
+            "weight": 10
+          }
+        ]
+      },
+      {
+        "id": "iAosDd-1lYuLZhrk7N92M",
+        "exerciseId": "сидя-игры",
+        "sets": [
+          {
+            "reps": 20,
+            "weight": 25
+          },
+          {
+            "reps": 20,
+            "weight": 32
+          },
+          {
+            "reps": 20,
+            "weight": 35
+          },
+          {
+            "reps": 20,
+            "weight": 37.5
           }
         ]
       }
