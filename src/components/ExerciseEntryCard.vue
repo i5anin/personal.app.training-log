@@ -28,7 +28,15 @@ function updateSet(index: number, set: SetRow) {
 
 function addSet() {
   const lastSet = props.entry.sets[props.entry.sets.length - 1]
-  const newSet: SetRow = lastSet ? { ...lastSet } : { reps: 15, weight: 0 }
+  const newSet: SetRow = lastSet ? { reps: lastSet.reps, weight: lastSet.weight } : { reps: 15, weight: 0 }
+  emit('update', { ...props.entry, sets: [...props.entry.sets, newSet] })
+}
+
+function addBurnout() {
+  const lastSet = props.entry.sets[props.entry.sets.length - 1]
+  const newSet: SetRow = lastSet
+    ? { reps: lastSet.reps, weight: Math.round(lastSet.weight * 0.7 * 2) / 2, isBurnout: true }
+    : { reps: 15, weight: 0, isBurnout: true }
   emit('update', { ...props.entry, sets: [...props.entry.sets, newSet] })
 }
 
@@ -68,7 +76,10 @@ function updatePhotos(ids: string[]) {
         :exerciseId="entry.exerciseId"
         :index="i"
       />
-      <button class="btn btn-add-set" @click="addSet">+ подход</button>
+      <div class="set-buttons">
+        <button class="btn btn-add-set" @click="addSet">+ подход</button>
+        <button class="btn btn-add-set btn-burnout" @click="addBurnout">+ добивка</button>
+      </div>
     </div>
 
     <div class="extras">
@@ -140,6 +151,22 @@ function updatePhotos(ids: string[]) {
 .btn-add-set:hover {
   border-color: #5a8;
   color: #5a8;
+}
+
+.set-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn-burnout {
+  border-color: #c84;
+  color: #c84;
+}
+
+.btn-burnout:hover {
+  border-color: #da5 !important;
+  color: #da5 !important;
 }
 
 .extras {

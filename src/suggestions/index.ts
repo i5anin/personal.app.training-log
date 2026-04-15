@@ -52,22 +52,26 @@ export function suggestReps(exerciseId: string, allWorkouts: Workout[]): number[
     }
   }
 
-  if (freq.size === 0) return [15, 12, 10, 8]
+  if (freq.size === 0) return [12, 15, 20, 10, 8]
 
   return [...freq.entries()]
     .sort((a, b) => b[1] - a[1])
     .map(([reps]) => reps)
 }
 
-export function suggestWeight(exerciseId: string, allWorkouts: Workout[]): { last: number; max: number } {
+export function suggestWeight(exerciseId: string, allWorkouts: Workout[]): { last: number; max: number; all: number[] } {
   let last = 0
   let max = 0
   let lastWorkoutId = -1
+  const freq = new Map<number, number>()
 
   for (const w of allWorkouts) {
     for (const entry of w.entries) {
       if (entry.exerciseId === exerciseId) {
         for (const s of entry.sets) {
+          if (s.weight > 0) {
+            freq.set(s.weight, (freq.get(s.weight) || 0) + 1)
+          }
           if (s.weight > max) max = s.weight
           if (w.id > lastWorkoutId) {
             lastWorkoutId = w.id
@@ -78,5 +82,9 @@ export function suggestWeight(exerciseId: string, allWorkouts: Workout[]): { las
     }
   }
 
-  return { last, max }
+  const all = [...freq.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([w]) => w)
+
+  return { last, max, all }
 }
