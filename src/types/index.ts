@@ -22,6 +22,7 @@ export interface ExerciseEntry {
   supersetGroupId?: string
   description?: string
   photoIds?: string[]
+  barWeight?: number
 }
 
 export interface Workout {

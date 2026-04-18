@@ -188,6 +188,7 @@ async function save() {
           v-for="(entry, i) in workout.entries"
           :key="entry.id"
           :entry="entry"
+          :index="i"
           :muscleGroups="workout.muscleGroups"
           :supersetLabel="getSupersetLabel(entry)"
           @update="updateEntry(i, $event)"

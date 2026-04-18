@@ -31,7 +31,8 @@
             "reps": 1,
             "weight": 67.5
           }
-        ]
+        ],
+        "barWeight": 20
       },
       {
         "id": "cXIbt3EyxMXDJwgLsIpgC",
@@ -154,7 +155,7 @@
   },
   {
     "id": 56,
-    "date": "2023-11-15",
+    "date": "2023-11-18",
     "muscleGroups": [
       "shoulders",
       "core"
@@ -300,5 +301,85 @@
     ],
     "primaryType": "shoulders",
     "secondaryType": "core"
+  },
+  {
+    "id": 57,
+    "date": "2023-11-21",
+    "muscleGroups": [
+      "legs"
+    ],
+    "entries": [
+      {
+        "id": "_CMloaZ3t0ojUQvSpjZzm",
+        "exerciseId": "squat",
+        "sets": [
+          {
+            "reps": 12,
+            "weight": 0
+          },
+          {
+            "reps": 12,
+            "weight": 40
+          },
+          {
+            "reps": 6,
+            "weight": 50
+          },
+          {
+            "reps": 3,
+            "weight": 60
+          }
+        ],
+        "barWeight": 20
+      },
+      {
+        "id": "5WIdnbeqljuCVWYBPFpsD",
+        "exerciseId": "выпады-со-штангой",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 0
+          },
+          {
+            "reps": 15,
+            "weight": 5
+          },
+          {
+            "reps": 12,
+            "weight": 10
+          },
+          {
+            "reps": 8,
+            "weight": 10
+          }
+        ],
+        "barWeight": 20
+      },
+      {
+        "id": "ft_lefedYw7m9YgaiBeu4",
+        "exerciseId": "разгибание-сидя-сайбокс",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 15
+          },
+          {
+            "reps": 15,
+            "weight": 20
+          },
+          {
+            "reps": 12,
+            "weight": 20
+          },
+          {
+            "reps": 12,
+            "weight": 25
+          }
+        ]
+      }
+    ],
+    "description": "",
+    "primaryType": "legs",
+    "secondaryType": ""
   }
 ]

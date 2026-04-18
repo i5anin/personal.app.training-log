@@ -8,6 +8,7 @@ const props = defineProps<{
   modelValue: SetRow
   exerciseId: string
   index: number
+  barWeight?: number
 }>()
 const emit = defineEmits<{
   'update:modelValue': [value: SetRow]
@@ -101,6 +102,9 @@ function pickReps(r: number) {
           @blur="onWeightBlur"
         />
         <span class="label">кг</span>
+        <span v-if="barWeight && modelValue.weight" class="real-weight">
+          = {{ modelValue.weight + barWeight }} кг
+        </span>
         <div class="dropdown" v-if="weightOpen && filteredWeights.length > 0">
           <button
             v-for="w in filteredWeights"
@@ -202,6 +206,12 @@ function pickReps(r: number) {
 .label {
   color: #888;
   font-size: 0.75rem;
+}
+
+.real-weight {
+  color: #c8a;
+  font-size: 0.72rem;
+  white-space: nowrap;
 }
 
 .x {

@@ -32,6 +32,28 @@ function formatDate(iso: string) {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+// Разрыв между тренировками в днях
+function gapDays(isoA: string, isoB: string): number {
+  const a = new Date(isoA).setHours(0, 0, 0, 0)
+  const b = new Date(isoB).setHours(0, 0, 0, 0)
+  return Math.round(Math.abs(b - a) / 86400000)
+}
+
+function formatGap(days: number): string {
+  if (days === 0) return 'в тот же день'
+  if (days === 1) return 'через 1 день'
+  if (days < 5) return `через ${days} дня`
+  return `через ${days} дней`
+}
+
+function sinceToday(iso: string): string {
+  const days = gapDays(iso, new Date().toISOString().slice(0, 10))
+  if (days === 0) return 'сегодня'
+  if (days === 1) return '1 день назад'
+  if (days < 5) return `${days} дня назад`
+  return `${days} дней назад`
+}
+
 function mgLabels(ids: string[]) {
   return ids.map((id) => {
     const label = catalogStore.muscleGroups.find((mg) => mg.id === id)?.label || id
@@ -109,6 +131,15 @@ async function doImport() {
         <span class="workout-date">{{ formatDate(w.date) }}</span>
       </div>
       <div class="card-muscles" v-if="w.muscleGroups.length">{{ mgLabels(w.muscleGroups) }}</div>
+      <!-- Время с предыдущей тренировки -->
+      <div class="card-since">
+        <template v-if="filtered.indexOf(w) === 0">
+          {{ sinceToday(w.date) }}
+        </template>
+        <template v-if="filtered.indexOf(w) < filtered.length - 1">
+          · {{ formatGap(gapDays(filtered[filtered.indexOf(w) + 1]!.date, w.date)) }} после предыдущей
+        </template>
+      </div>
       <div class="card-footer">
         <span class="card-exercises">
           {{ w.entries.length }} упр.
@@ -214,6 +245,12 @@ async function doImport() {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.card-since {
+  font-size: 0.72rem;
+  color: #555;
+  margin-bottom: 3px;
 }
 
 .card-footer {

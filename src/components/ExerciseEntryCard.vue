@@ -10,6 +10,7 @@ const props = defineProps<{
   entry: ExerciseEntry
   muscleGroups: string[]
   supersetLabel?: string
+  index?: number
 }>()
 const emit = defineEmits<{
   update: [entry: ExerciseEntry]
@@ -49,6 +50,11 @@ function updateDescription(val: string) {
   emit('update', { ...props.entry, description: val || undefined })
 }
 
+function setBarWeight(w: number) {
+  const cur = props.entry.barWeight ?? 0
+  emit('update', { ...props.entry, barWeight: cur === w ? 0 : w })
+}
+
 function updatePhotos(ids: string[]) {
   emit('update', { ...props.entry, photoIds: ids.length ? ids : undefined })
 }
@@ -56,7 +62,10 @@ function updatePhotos(ids: string[]) {
 
 <template>
   <div class="entry-card" :class="{ 'in-superset': supersetLabel }">
-    <div v-if="supersetLabel" class="superset-badge">{{ supersetLabel }}</div>
+    <div class="entry-header-top">
+      <span v-if="index !== undefined" class="entry-num">{{ index + 1 }}.</span>
+      <span v-if="supersetLabel" class="superset-badge">{{ supersetLabel }}</span>
+    </div>
     <div class="entry-header">
       <ExerciseSelector
         :modelValue="entry.exerciseId"
@@ -64,6 +73,19 @@ function updatePhotos(ids: string[]) {
         :muscleGroups="muscleGroups"
       />
       <button class="remove-entry" @click="emit('remove')">🗑</button>
+    </div>
+
+    <!-- Вес штанги -->
+    <div class="bar-row">
+      <span class="bar-label">Штанга:</span>
+      <button
+        v-for="w in [12, 20]"
+        :key="w"
+        class="bar-btn"
+        :class="{ active: entry.barWeight === w }"
+        @click="setBarWeight(w)"
+      >{{ w }} кг</button>
+      <span v-if="entry.barWeight" class="bar-hint">+ {{ entry.barWeight }} кг к весу</span>
     </div>
 
     <div class="sets">
@@ -75,6 +97,7 @@ function updatePhotos(ids: string[]) {
         @remove="removeSet(i)"
         :exerciseId="entry.exerciseId"
         :index="i"
+        :barWeight="entry.barWeight ?? 0"
       />
       <div class="set-buttons">
         <button class="btn btn-add-set" @click="addSet">+ подход</button>
@@ -103,6 +126,24 @@ function updatePhotos(ids: string[]) {
   margin-bottom: 8px;
 }
 
+.entry-header-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.entry-num {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #5a8;
+  background: #1a2a22;
+  border: 1px solid #3a6a4a;
+  border-radius: 4px;
+  padding: 1px 6px;
+  line-height: 1.4;
+}
+
 .in-superset {
   border-left: 3px solid #5a8;
 }
@@ -110,7 +151,6 @@ function updatePhotos(ids: string[]) {
 .superset-badge {
   font-size: 0.7rem;
   color: #5a8;
-  margin-bottom: 4px;
   font-weight: bold;
 }
 
@@ -131,6 +171,44 @@ function updatePhotos(ids: string[]) {
   cursor: pointer;
   font-size: 1rem;
   padding: 4px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+
+.bar-label {
+  font-size: 0.72rem;
+  color: #555;
+}
+
+.bar-btn {
+  padding: 2px 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #222;
+  color: #888;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.bar-btn:hover {
+  border-color: #888;
+  color: #ccc;
+}
+
+.bar-btn.active {
+  border-color: #c8a;
+  background: #3a2a1a;
+  color: #c8a;
+}
+
+.bar-hint {
+  font-size: 0.7rem;
+  color: #c8a;
 }
 
 .sets {
