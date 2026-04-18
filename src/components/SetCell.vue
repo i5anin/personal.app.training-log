@@ -100,10 +100,9 @@ function pickReps(r: number) { repsQuery.value = String(r); repsOpen.value = fal
 .set-cell {
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 4px 6px;
+  gap: 2px;
+  padding: 3px 4px;
   border-radius: 4px;
-  min-width: 80px;
   position: relative;
 }
 
@@ -116,13 +115,13 @@ function pickReps(r: number) { repsQuery.value = String(r); repsOpen.value = fal
 }
 
 .cell-input {
-  width: 46px;
-  padding: 3px 4px;
+  width: 42px;
+  padding: 2px 3px;
   border: 1px solid #3a3a3a;
   border-radius: 4px;
   background: #121212;
   color: #eee;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   text-align: center;
 }
 

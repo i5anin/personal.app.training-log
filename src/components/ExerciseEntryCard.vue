@@ -212,8 +212,8 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
   background: #1e1e1e;
   border: 1px solid #333;
   border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 8px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
 }
 
 .in-superset { border-left: 3px solid #5a8; }
@@ -222,7 +222,7 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .entry-num {
@@ -256,7 +256,7 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 .bar-label { font-size: 0.72rem; color: #555; }
 .bar-btn {
@@ -273,11 +273,11 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
 .bar-hint { font-size: 0.7rem; color: #c8a; }
 
 /* Таблица */
-.sets-wrap { margin-bottom: 6px; }
+.sets-wrap { margin-bottom: 4px; }
 
 .sets-table {
   border-collapse: collapse;
-  width: 100%;
+  width: auto;
 }
 
 .th-num {
@@ -285,11 +285,11 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
   color: #5a8;
   font-weight: bold;
   text-align: center;
-  padding: 2px 4px 4px;
-  min-width: 90px;
+  padding: 1px 4px 3px;
+  min-width: 0;
 }
 
-.th-add { width: 30px; }
+.th-add { width: 24px; padding: 0 2px; }
 
 .add-col-btn {
   background: none;
@@ -306,14 +306,16 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
 
 /* Основные ячейки */
 .td-main {
-  padding: 2px 2px;
+  padding: 1px 3px;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 /* Добивки */
 .td-burnout {
-  padding: 2px 2px;
+  padding: 1px 3px;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .td-burnout.filled {
@@ -340,7 +342,7 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
 .table-actions {
   display: flex;
   gap: 6px;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .btn-add {
