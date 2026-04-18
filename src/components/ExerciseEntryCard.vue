@@ -155,10 +155,11 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
             <td></td>
           </tr>
 
-          <!-- Строки добивок (по одной строке на каждый уровень добивок) -->
+          <!-- Строки добивок -->
           <tr v-for="ri in maxBurnouts" :key="'b' + ri" class="burnout-row">
             <td v-for="(col, ci) in setColumns" :key="ci"
               class="td-burnout" :class="{ filled: !!col.burnouts[ri - 1] }">
+              <!-- Данные добивки -->
               <SetCell
                 v-if="col.burnouts[ri - 1]"
                 :modelValue="col.burnouts[ri - 1].set"
@@ -167,19 +168,21 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
                 @update:modelValue="updateSet(col.burnouts[ri - 1].idx, $event)"
                 @remove="removeSet(col.burnouts[ri - 1].idx)"
               />
-              <!-- кнопка + для следующей добивки в этом столбце -->
+              <!-- ↳ кнопка в пустой ячейке — сюда добавится добивка -->
               <button
                 v-else-if="ri - 1 === col.burnouts.length"
-                class="add-burnout-here"
-                @click="addBurnoutToCol(ci)"
-                title="добавить добивку">↳</button>
+                class="add-burnout-here td-hint"
+                @click="addBurnoutToCol(ci)">↳</button>
             </td>
             <td></td>
           </tr>
-          <!-- Строка с кнопками ↳ для первой добивки (если добивок ещё нет) -->
-          <tr v-if="!hasBurnouts" class="burnout-hint-row">
-            <td v-for="(col, ci) in setColumns" :key="ci" class="td-burnout">
-              <button class="add-burnout-here" @click="addBurnoutToCol(ci)">↳</button>
+          <!-- Последняя строка: ↳ только для колонок, уже полностью заполненных -->
+          <tr class="burnout-hint-row">
+            <td v-for="(col, ci) in setColumns" :key="ci" class="td-burnout td-hint">
+              <button
+                v-if="col.burnouts.length === maxBurnouts"
+                class="add-burnout-here"
+                @click="addBurnoutToCol(ci)">↳</button>
             </td>
             <td></td>
           </tr>
@@ -188,7 +191,6 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
 
       <div class="table-actions">
         <button class="btn btn-add" @click="addSet">+ подход</button>
-        <button class="btn btn-add btn-burnout" @click="addBurnout">+ добивка</button>
       </div>
     </div>
 
@@ -331,8 +333,8 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
 }
 .add-burnout-here:hover { border-color: #c84; color: #c84; }
 
-.burnout-hint-row .td-burnout { opacity: 0.35; }
-.burnout-hint-row .td-burnout:hover { opacity: 1; }
+.td-hint { opacity: 0.25; transition: opacity 0.15s; }
+.td-hint:hover { opacity: 1; }
 
 /* Кнопки под таблицей */
 .table-actions {
