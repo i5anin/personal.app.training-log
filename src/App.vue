@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useWorkoutStore } from '@/stores/workoutStore'
+import WorkoutListView from '@/views/WorkoutListView.vue'
 
 const catalogStore = useCatalogStore()
 const workoutStore = useWorkoutStore()
-const router = useRouter()
 
 onMounted(async () => {
   await catalogStore.load()
@@ -15,32 +14,123 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="app">
-    <header class="app-header">
-      <h1 @click="router.push('/')">💪 Gym+</h1>
-    </header>
-    <main>
-      <RouterView />
+  <div class="app-layout">
+    <!-- Левая панель: список -->
+    <aside class="panel-list">
+      <div class="panel-list-header">
+        <span class="logo">💪 Gym+</span>
+      </div>
+      <div class="panel-list-body">
+        <WorkoutListView />
+      </div>
+    </aside>
+
+    <!-- Правая панель: редактор -->
+    <main class="panel-editor">
+      <RouterView v-if="$route.name !== 'list'" />
+      <div v-else class="editor-empty">
+        <div class="editor-empty-inner">
+          <div class="editor-empty-icon">🏋️</div>
+          <div>Выберите тренировку или создайте новую</div>
+        </div>
+      </div>
     </main>
   </div>
 </template>
 
-<style scoped>
-.app {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 0 12px;
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
-.app-header {
-  padding: 12px 0;
-  border-bottom: 2px solid #333;
-  margin-bottom: 16px;
-}
-
-.app-header h1 {
+html, body {
   margin: 0;
-  font-size: 1.4rem;
-  cursor: pointer;
+  padding: 0;
+  height: 100%;
+  background: #121212;
+  color: #eee;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+#app {
+  height: 100%;
+}
+</style>
+
+<style scoped>
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+/* ─── Левая панель ─── */
+.panel-list {
+  width: 280px;
+  min-width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid #2a2a2a;
+  display: flex;
+  flex-direction: column;
+  background: #161616;
+}
+
+.panel-list-header {
+  flex-shrink: 0;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.logo {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.panel-list-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ─── Правая панель ─── */
+.panel-editor {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 28px;
+  min-width: 0;
+}
+
+.editor-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editor-empty-inner {
+  text-align: center;
+  color: #444;
+}
+
+.editor-empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 600px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
+  .panel-list {
+    width: 100%;
+    max-height: 45vh;
+    border-right: none;
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .panel-editor {
+    padding: 12px 14px;
+  }
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { nanoid } from 'nanoid'
 import type { Workout, ExerciseEntry } from '@/types'
@@ -7,58 +7,86 @@ import { getWorkout, getNextWorkoutId, saveWorkout } from '@/db'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import ExerciseEntryCard from '@/components/ExerciseEntryCard.vue'
+import MuscleGroupSelect from '@/components/MuscleGroupSelect.vue'
 
 const route = useRoute()
 const router = useRouter()
 const catalogStore = useCatalogStore()
 const workoutStore = useWorkoutStore()
 
-const workout = ref<Workout>({
+const loading = ref(false)
+const saving = ref(false)
+
+const isNew = computed(() => route.name === 'new-workout')
+
+const emptyWorkout = (): Workout => ({
   id: 0,
   date: new Date().toISOString().slice(0, 10),
   muscleGroups: [],
   entries: [],
   description: '',
+  primaryType: '',
+  secondaryType: '',
 })
 
-const isNew = computed(() => route.name === 'new-workout')
-const saving = ref(false)
+const workout = ref<Workout>(emptyWorkout())
 
-onMounted(async () => {
-  if (route.name === 'edit-workout') {
-    const id = Number(route.params.id)
-    const existing = await getWorkout(id)
-    if (existing) {
-      workout.value = JSON.parse(JSON.stringify(existing))
+async function loadWorkout() {
+  loading.value = true
+  workout.value = emptyWorkout()
+  try {
+    if (route.name === 'edit-workout') {
+      const id = Number(route.params.id)
+      const existing = await getWorkout(id)
+      if (existing) {
+        workout.value = JSON.parse(JSON.stringify(existing))
+        // Совместимость: если старые данные без primaryType — берём из muscleGroups
+        if (!workout.value.primaryType && workout.value.muscleGroups.length > 0) {
+          workout.value.primaryType = workout.value.muscleGroups[0]
+        }
+        if (!workout.value.secondaryType && workout.value.muscleGroups.length > 1) {
+          workout.value.secondaryType = workout.value.muscleGroups[1]
+        }
+      } else {
+        router.replace('/')
+      }
     } else {
-      router.replace('/')
-    }
-  } else {
-    workout.value.id = await getNextWorkoutId()
-
-    // Duplicate from another workout
-    const fromId = Number(route.query.from)
-    if (fromId) {
-      const source = await getWorkout(fromId)
-      if (source) {
-        workout.value.muscleGroups = [...source.muscleGroups]
-        workout.value.entries = source.entries.map((e) => ({
-          ...e,
-          id: nanoid(),
-          sets: e.sets.map((s) => ({ ...s })),
-          photoIds: undefined,
-          description: undefined,
-        }))
+      workout.value.id = await getNextWorkoutId()
+      const fromId = Number(route.query.from)
+      if (fromId) {
+        const source = await getWorkout(fromId)
+        if (source) {
+          workout.value.primaryType = source.primaryType || source.muscleGroups[0] || ''
+          workout.value.secondaryType = source.secondaryType || source.muscleGroups[1] || ''
+          workout.value.entries = source.entries.map((e) => ({
+            ...e,
+            id: nanoid(),
+            sets: e.sets.map((s) => ({ ...s })),
+            photoIds: undefined,
+            description: undefined,
+          }))
+        }
       }
     }
+    syncMuscleGroups()
+  } finally {
+    loading.value = false
   }
-})
-
-function toggleMuscleGroup(id: string) {
-  const idx = workout.value.muscleGroups.indexOf(id)
-  if (idx >= 0) workout.value.muscleGroups.splice(idx, 1)
-  else workout.value.muscleGroups.push(id)
 }
+
+watch(() => [route.name, route.params.id], loadWorkout, { immediate: true })
+
+// Синхронизируем массив muscleGroups из двух селектов
+function syncMuscleGroups() {
+  const groups: string[] = []
+  if (workout.value.primaryType) groups.push(workout.value.primaryType)
+  if (workout.value.secondaryType && workout.value.secondaryType !== workout.value.primaryType) {
+    groups.push(workout.value.secondaryType)
+  }
+  workout.value.muscleGroups = groups
+}
+
+watch(() => [workout.value.primaryType, workout.value.secondaryType], syncMuscleGroups)
 
 function addEntry() {
   workout.value.entries.push({
@@ -84,7 +112,7 @@ function removeEntry(index: number) {
   workout.value.entries.splice(index, 1)
 }
 
-function getSupersetLabel(entry: ExerciseEntry, index: number): string | undefined {
+function getSupersetLabel(entry: ExerciseEntry): string | undefined {
   if (!entry.supersetGroupId) return undefined
   const groupEntries = workout.value.entries.filter((e) => e.supersetGroupId === entry.supersetGroupId)
   const pos = groupEntries.indexOf(entry) + 1
@@ -97,7 +125,6 @@ async function save() {
   try {
     await saveWorkout(JSON.parse(JSON.stringify(workout.value)))
     await workoutStore.load()
-    router.push('/')
   } finally {
     saving.value = false
   }
@@ -105,52 +132,59 @@ async function save() {
 </script>
 
 <template>
-  <div class="editor">
+  <div class="editor" v-if="!loading">
+    <!-- Заголовок -->
     <div class="editor-top">
-      <button class="btn btn-back" @click="router.push('/')">← Назад</button>
-      <h2 v-if="isNew">Тренировка #{{ workout.id }}</h2>
-      <h2 v-else>Редактировать #{{ workout.id }}</h2>
-    </div>
-
-    <!-- Date -->
-    <div class="field-row">
-      <label>Дата</label>
-      <input type="date" v-model="workout.date" class="date-input" />
-    </div>
-
-    <!-- Muscle Groups -->
-    <div class="field-row">
-      <label>Мышцы</label>
-      <div class="mg-chips">
-        <button
-          v-for="mg in catalogStore.muscleGroups"
-          :key="mg.id"
-          class="chip"
-          :class="{ active: workout.muscleGroups.includes(mg.id) }"
-          @click="toggleMuscleGroup(mg.id)"
-        >
-          {{ mg.label }}
-        </button>
+      <div class="id-heading">
+        <span class="id-label">{{ isNew ? 'Новая тренировка' : 'Тренировка' }} #</span>
+        <input
+          type="number"
+          class="id-input"
+          v-model.number="workout.id"
+          min="1"
+          title="Номер тренировки"
+        />
       </div>
     </div>
 
-    <!-- Description -->
-    <div class="field-row">
-      <input
-        v-model="workout.description"
-        placeholder="Описание тренировки..."
-        class="desc-input"
-      />
+    <div class="form-grid">
+      <!-- Дата -->
+      <div class="field-row">
+        <label>Дата</label>
+        <input type="date" v-model="workout.date" class="date-input" />
+      </div>
+
+      <!-- Группы мышц -->
+      <div class="field-row types-row">
+        <MuscleGroupSelect
+          v-model="workout.primaryType"
+          label="Основная группа"
+        />
+        <MuscleGroupSelect
+          v-model="workout.secondaryType"
+          label="Дополнительная группа"
+          :disabledId="workout.primaryType"
+        />
+      </div>
+
+      <!-- Описание -->
+      <div class="field-row">
+        <input
+          v-model="workout.description"
+          placeholder="Описание тренировки..."
+          class="desc-input"
+        />
+      </div>
     </div>
 
-    <!-- Entries -->
+    <!-- Упражнения -->
     <div class="entries">
       <ExerciseEntryCard
         v-for="(entry, i) in workout.entries"
         :key="entry.id"
         :entry="entry"
         :muscleGroups="workout.muscleGroups"
-        :supersetLabel="getSupersetLabel(entry, i)"
+        :supersetLabel="getSupersetLabel(entry)"
         @update="updateEntry(i, $event)"
         @remove="removeEntry(i)"
       />
@@ -161,27 +195,116 @@ async function save() {
       <button class="btn" @click="addSuperset">+ Суперсет</button>
     </div>
 
+  </div>
+
+  <div class="save-bar" v-if="!loading">
     <button class="btn btn-save" @click="save" :disabled="saving">
       {{ saving ? 'Сохраняю...' : '💾 Сохранить' }}
     </button>
   </div>
+
+  <div class="loading" v-else>Загрузка...</div>
 </template>
 
 <style scoped>
 .editor {
-  padding-bottom: 40px;
+  max-width: 720px;
+  padding-bottom: 70px;
+}
+
+.loading {
+  color: #666;
+  padding: 40px;
+  text-align: center;
 }
 
 .editor-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
-.editor-top h2 {
-  margin: 0;
-  font-size: 1.1rem;
+.id-heading {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.id-label {
+  white-space: nowrap;
+  color: #ccc;
+}
+
+.id-input {
+  width: 72px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed #555;
+  color: #eee;
+  font-size: 1.3rem;
+  font-weight: bold;
+  font-family: inherit;
+  padding: 0 2px;
+  -moz-appearance: textfield;
+}
+
+.id-input::-webkit-outer-spin-button,
+.id-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.id-input:focus {
+  outline: none;
+  border-bottom-color: #5a8;
+}
+
+.form-grid {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-row label {
+  font-size: 0.78rem;
+  color: #666;
+}
+
+.types-row {
+  flex-direction: row;
+  gap: 12px;
+}
+
+.date-input,
+.desc-input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: #111;
+  color: #eee;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.date-input:focus,
+.desc-input:focus {
+  outline: none;
+  border-color: #5a8;
+}
+
+.date-input {
+  width: auto;
 }
 
 .btn {
@@ -195,12 +318,7 @@ async function save() {
 }
 
 .btn:hover {
-  background: #3a3a3a;
-}
-
-.btn-back {
-  padding: 4px 12px;
-  font-size: 0.85rem;
+  background: #333;
 }
 
 .btn-save {
@@ -219,71 +337,48 @@ async function save() {
 
 .btn-save:disabled {
   opacity: 0.5;
-}
-
-.field-row {
-  margin-bottom: 10px;
-}
-
-.field-row label {
-  display: block;
-  font-size: 0.8rem;
-  color: #888;
-  margin-bottom: 4px;
-}
-
-.date-input {
-  padding: 6px 10px;
-  border: 1px solid #444;
-  border-radius: 6px;
-  background: #1a1a1a;
-  color: #eee;
-  font-size: 0.95rem;
-}
-
-.desc-input {
-  width: 100%;
-  padding: 6px 10px;
-  border: 1px solid #444;
-  border-radius: 6px;
-  background: #1a1a1a;
-  color: #eee;
-  font-size: 0.9rem;
-  box-sizing: border-box;
-}
-
-.mg-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip {
-  padding: 4px 12px;
-  border: 1px solid #444;
-  border-radius: 16px;
-  background: #2a2a2a;
-  color: #ccc;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.chip:hover {
-  border-color: #5a8;
-}
-
-.chip.active {
-  background: #2a7a4a;
-  border-color: #2a7a4a;
-  color: #fff;
+  cursor: default;
 }
 
 .entries {
-  margin: 12px 0;
+  margin: 0 0 12px;
 }
 
 .add-buttons {
   display: flex;
   gap: 8px;
+}
+
+.save-bar {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: 280px; /* ширина левой панели */
+  padding: 10px 24px;
+  background: #121212;
+  border-top: 1px solid #2a2a2a;
+  z-index: 50;
+}
+
+.btn-save {
+  width: 100%;
+  max-width: 720px;
+  padding: 11px;
+  background: #2a7a4a;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-save:hover {
+  background: #3a8a5a;
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 </style>

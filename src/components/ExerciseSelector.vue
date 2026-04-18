@@ -80,7 +80,11 @@ function addCustom() {
         @mousedown.prevent="select(ex.id)"
       >
         <span class="ex-name">{{ ex.name }}</span>
-        <span class="ex-groups">{{ ex.muscleGroups.join(', ') }}</span>
+        <span class="ex-groups">{{
+          ex.muscleGroups
+            .map(id => catalogStore.muscleGroups.find(mg => mg.id === id)?.label ?? id)
+            .join(', ')
+        }}</span>
       </div>
       <div v-if="query && suggestions.length === 0" class="dropdown-item add-new" @mousedown.prevent="addCustom()">
         + Добавить "{{ query }}"

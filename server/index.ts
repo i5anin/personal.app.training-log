@@ -158,6 +158,19 @@ app.get('/api/muscle-groups', async () => {
   return readJSON('muscleGroups.json', [])
 })
 
+app.post('/api/muscle-groups', async (req) => {
+  const groups = readJSON<any[]>('muscleGroups.json', [])
+  const group = req.body as any
+  const existing = groups.findIndex((g) => g.id === group.id)
+  if (existing >= 0) {
+    groups[existing] = group
+  } else {
+    groups.push(group)
+  }
+  writeJSON('muscleGroups.json', groups)
+  return { ok: true }
+})
+
 // Photos
 app.post('/api/photos', async (req) => {
   const file = await req.file()

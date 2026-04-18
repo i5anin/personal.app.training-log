@@ -15,26 +15,71 @@ const emit = defineEmits<{
 }>()
 
 const workoutStore = useWorkoutStore()
-const showChips = ref(false)
-
-const repsSuggestions = computed(() => suggestReps(props.exerciseId, workoutStore.workouts))
 const weightSugg = computed(() => suggestWeight(props.exerciseId, workoutStore.workouts))
+const repsSugg = computed(() => suggestReps(props.exerciseId, workoutStore.workouts))
 
-function update(field: keyof SetRow, val: string) {
-  const num = parseFloat(val) || 0
-  emit('update:modelValue', { ...props.modelValue, [field]: num })
+// --- Weight combobox ---
+const weightOpen = ref(false)
+const weightQuery = ref('')
+
+const filteredWeights = computed(() => {
+  const q = weightQuery.value
+  if (!q) return weightSugg.value.all
+  return weightSugg.value.all.filter((w) => String(w).includes(q))
+})
+
+function onWeightFocus() {
+  weightQuery.value = props.modelValue.weight ? String(props.modelValue.weight) : ''
+  weightOpen.value = true
 }
 
-function applyReps(r: number) {
-  emit('update:modelValue', { ...props.modelValue, reps: r })
+function onWeightInput(e: Event) {
+  const val = (e.target as HTMLInputElement).value
+  weightQuery.value = val
+  weightOpen.value = true
+  emit('update:modelValue', { ...props.modelValue, weight: parseFloat(val) || 0 })
 }
 
-function applyWeight(w: number) {
+function onWeightBlur() {
+  setTimeout(() => { weightOpen.value = false }, 150)
+}
+
+function pickWeight(w: number) {
+  weightQuery.value = String(w)
+  weightOpen.value = false
   emit('update:modelValue', { ...props.modelValue, weight: w })
 }
 
-function toggleChips() {
-  showChips.value = !showChips.value
+// --- Reps combobox ---
+const repsOpen = ref(false)
+const repsQuery = ref('')
+
+const filteredReps = computed(() => {
+  const q = repsQuery.value
+  if (!q) return repsSugg.value
+  return repsSugg.value.filter((r) => String(r).includes(q))
+})
+
+function onRepsFocus() {
+  repsQuery.value = props.modelValue.reps ? String(props.modelValue.reps) : ''
+  repsOpen.value = true
+}
+
+function onRepsInput(e: Event) {
+  const val = (e.target as HTMLInputElement).value
+  repsQuery.value = val
+  repsOpen.value = true
+  emit('update:modelValue', { ...props.modelValue, reps: parseFloat(val) || 0 })
+}
+
+function onRepsBlur() {
+  setTimeout(() => { repsOpen.value = false }, 150)
+}
+
+function pickReps(r: number) {
+  repsQuery.value = String(r)
+  repsOpen.value = false
+  emit('update:modelValue', { ...props.modelValue, reps: r })
 }
 </script>
 
@@ -42,60 +87,57 @@ function toggleChips() {
   <div class="set-wrapper" :class="{ burnout: modelValue.isBurnout }">
     <div v-if="modelValue.isBurnout" class="burnout-marker">↳</div>
     <div class="set-row">
-      <span class="set-num" @click="toggleChips">{{ index + 1 }}.</span>
-      <div class="field">
+      <span class="set-num">{{ index + 1 }}.</span>
+
+      <!-- Weight combobox -->
+      <div class="combo">
         <input
           type="number"
           :value="modelValue.weight || ''"
-          @input="update('weight', ($event.target as HTMLInputElement).value)"
           :placeholder="weightSugg.last ? String(weightSugg.last) : '0'"
           class="num-input"
-          @focus="showChips = true; !modelValue.weight && weightSugg.last > 0 && applyWeight(weightSugg.last)"
+          @input="onWeightInput"
+          @focus="onWeightFocus"
+          @blur="onWeightBlur"
         />
         <span class="label">кг</span>
+        <div class="dropdown" v-if="weightOpen && filteredWeights.length > 0">
+          <button
+            v-for="w in filteredWeights"
+            :key="w"
+            class="dd-item"
+            :class="{ active: modelValue.weight === w }"
+            @mousedown.prevent="pickWeight(w)"
+          >{{ w }}</button>
+        </div>
       </div>
+
       <span class="x">×</span>
-      <div class="field">
+
+      <!-- Reps combobox -->
+      <div class="combo">
         <input
           type="number"
           :value="modelValue.reps || ''"
-          @input="update('reps', ($event.target as HTMLInputElement).value)"
           placeholder="15"
           class="num-input"
-          @focus="showChips = true"
+          @input="onRepsInput"
+          @focus="onRepsFocus"
+          @blur="onRepsBlur"
         />
         <span class="label">повт</span>
+        <div class="dropdown" v-if="repsOpen && filteredReps.length > 0">
+          <button
+            v-for="r in filteredReps"
+            :key="r"
+            class="dd-item"
+            :class="{ active: modelValue.reps === r }"
+            @mousedown.prevent="pickReps(r)"
+          >{{ r }}</button>
+        </div>
       </div>
-      <button class="remove-btn" @click="emit('remove')">✕</button>
-    </div>
 
-    <div class="chips-row" v-if="showChips">
-      <!-- Weight chips -->
-      <div class="chips" v-if="weightSugg.all.length > 0">
-        <span class="chips-label">кг:</span>
-        <button
-          v-for="w in weightSugg.all.slice(0, 5)"
-          :key="'w' + w"
-          class="chip chip-weight"
-          :class="{ active: modelValue.weight === w }"
-          @click="applyWeight(w)"
-        >
-          {{ w }}
-        </button>
-      </div>
-      <!-- Reps chips -->
-      <div class="chips">
-        <span class="chips-label">повт:</span>
-        <button
-          v-for="r in repsSuggestions.slice(0, 5)"
-          :key="'r' + r"
-          class="chip"
-          :class="{ active: modelValue.reps === r }"
-          @click="applyReps(r)"
-        >
-          {{ r }}
-        </button>
-      </div>
+      <button class="remove-btn" @click="emit('remove')">✕</button>
     </div>
   </div>
 </template>
@@ -127,14 +169,10 @@ function toggleChips() {
   color: #888;
   font-size: 0.8rem;
   width: 20px;
-  cursor: pointer;
 }
 
-.set-num:hover {
-  color: #5a8;
-}
-
-.field {
+.combo {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -151,8 +189,14 @@ function toggleChips() {
   text-align: center;
 }
 
-.num-input::-webkit-inner-spin-button {
+.num-input::-webkit-inner-spin-button,
+.num-input::-webkit-outer-spin-button {
   -webkit-appearance: none;
+}
+
+.num-input:focus {
+  outline: none;
+  border-color: #5a8;
 }
 
 .label {
@@ -177,43 +221,44 @@ function toggleChips() {
   color: #a33;
 }
 
-.chips-row {
-  margin: 2px 0 6px 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+.dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  min-width: 72px;
+  background: #222;
+  border: 1px solid #555;
+  border-radius: 6px;
+  z-index: 200;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
 }
 
-.chips {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-
-.chips-label {
-  color: #666;
-  font-size: 0.7rem;
-  width: 30px;
-}
-
-.chip {
-  padding: 2px 10px;
-  border: 1px solid #444;
-  border-radius: 12px;
-  background: #2a2a2a;
+.dd-item {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #333;
   color: #ccc;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  text-align: left;
 }
 
-.chip:hover, .chip.active {
-  background: #2a7a4a;
-  border-color: #2a7a4a;
+.dd-item:last-child {
+  border-bottom: none;
+}
+
+.dd-item:hover {
+  background: #2a3a4a;
   color: #fff;
 }
 
-.chip-weight:hover, .chip-weight.active {
-  background: #4a6a9a;
-  border-color: #4a6a9a;
+.dd-item.active {
+  background: #2a5a8a;
+  color: #fff;
 }
 </style>

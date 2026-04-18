@@ -55,6 +55,10 @@ export async function getAllMuscleGroups(): Promise<MuscleGroup[]> {
   return json('/muscle-groups')
 }
 
+export async function saveMuscleGroup(group: MuscleGroup): Promise<void> {
+  await post('/muscle-groups', group)
+}
+
 // Photos
 export async function savePhoto(photo: { id: string; blob: Blob }): Promise<void> {
   const form = new FormData()

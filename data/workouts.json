@@ -1,28 +1,10 @@
 [
   {
-    "id": 1,
-    "date": "2026-04-15",
+    "id": 55,
+    "date": "2023-11-15",
     "muscleGroups": [
-      "shoulders"
-    ],
-    "entries": [
-      {
-        "id": "test",
-        "exerciseId": "pull-ups",
-        "sets": [
-          {
-            "reps": 15,
-            "weight": 12
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": 2,
-    "date": "2026-04-15",
-    "muscleGroups": [
-      "chest"
+      "chest",
+      "икры"
     ],
     "entries": [
       {
@@ -83,7 +65,7 @@
       },
       {
         "id": "S46VpVSoUmC4NJeUVl3ju",
-        "exerciseId": "эл.-хамер",
+        "exerciseId": "электро-хамер",
         "sets": [
           {
             "reps": 15,
@@ -166,6 +148,157 @@
         ]
       }
     ],
-    "description": ""
+    "description": "",
+    "primaryType": "chest",
+    "secondaryType": "икры"
+  },
+  {
+    "id": 56,
+    "date": "2023-11-15",
+    "muscleGroups": [
+      "shoulders",
+      "core"
+    ],
+    "entries": [
+      {
+        "id": "test",
+        "exerciseId": "pull-ups",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 12
+          },
+          {
+            "reps": 15,
+            "weight": 16
+          },
+          {
+            "reps": 12,
+            "weight": 18
+          },
+          {
+            "reps": 10,
+            "weight": 20
+          },
+          {
+            "reps": 10,
+            "weight": 7.5,
+            "isBurnout": true
+          }
+        ]
+      },
+      {
+        "id": "L4xhbAjKeikUxaeg1gWtk",
+        "exerciseId": "подьём-каната-в-кроссовере",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 4.5
+          },
+          {
+            "reps": 15,
+            "weight": 4.5
+          },
+          {
+            "reps": 15,
+            "weight": 6.5
+          },
+          {
+            "reps": 15,
+            "weight": 9
+          }
+        ]
+      },
+      {
+        "id": "FAeAse3-vUX_VVGbM5Y5P",
+        "exerciseId": "отведение-гантелей-сидя-на-скамье",
+        "sets": [
+          {
+            "reps": 20,
+            "weight": 5
+          },
+          {
+            "reps": 20,
+            "weight": 6
+          },
+          {
+            "reps": 20,
+            "weight": 7
+          },
+          {
+            "reps": 20,
+            "weight": 7
+          }
+        ]
+      },
+      {
+        "id": "rNm0q07-obWPTZAo5MiYR",
+        "exerciseId": "тяга-штанги-ко-лбу",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 23
+          },
+          {
+            "reps": 15,
+            "weight": 23
+          },
+          {
+            "reps": 15,
+            "weight": 27
+          },
+          {
+            "reps": 15,
+            "weight": 30
+          }
+        ]
+      },
+      {
+        "id": "Cb2z6W6xBu6BsEZQmvvQ3",
+        "exerciseId": "пресс-с-р",
+        "sets": [
+          {
+            "reps": 10,
+            "weight": 0
+          },
+          {
+            "reps": 10,
+            "weight": 0
+          },
+          {
+            "reps": 10,
+            "weight": 0
+          },
+          {
+            "reps": 10,
+            "weight": 0
+          }
+        ]
+      },
+      {
+        "id": "TEtUeBfgLaI0rMxZG7MGG",
+        "exerciseId": "подьём-на-скамье",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 0
+          },
+          {
+            "reps": 15,
+            "weight": 0
+          },
+          {
+            "reps": 15,
+            "weight": 0
+          },
+          {
+            "reps": 15,
+            "weight": 0
+          }
+        ]
+      }
+    ],
+    "primaryType": "shoulders",
+    "secondaryType": "core"
   }
 ]

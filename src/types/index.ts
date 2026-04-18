@@ -31,6 +31,8 @@ export interface Workout {
   entries: ExerciseEntry[]
   description?: string
   photoIds?: string[]
+  primaryType?: string
+  secondaryType?: string
 }
 
 export interface PhotoRecord {
