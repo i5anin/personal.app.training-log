@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useCatalogStore } from '@/stores/catalogStore'
+import { getMuscleGroupIcon } from '@/constants/muscleGroupIcons'
 
 const props = defineProps<{
   modelValue: string
@@ -55,7 +56,7 @@ function cancel() {
           :key="mg.id"
           :value="mg.id"
           :disabled="mg.id === disabledId"
-        >{{ mg.label }}</option>
+        >{{ getMuscleGroupIcon(mg.id) }} {{ mg.label }}</option>
         <option :value="ADD_ID">＋ Добавить группу...</option>
       </select>
     </template>

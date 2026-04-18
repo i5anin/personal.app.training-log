@@ -95,7 +95,7 @@ html, body {
 .panel-editor {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 28px;
+  padding: 20px 16px;
   min-width: 0;
 }
 

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { deleteWorkout, exportAll, importAll } from '@/db'
+import { getMuscleGroupIcon } from '@/constants/muscleGroupIcons'
 const route = useRoute()
 const router = useRouter()
 const workoutStore = useWorkoutStore()
@@ -32,7 +33,10 @@ function formatDate(iso: string) {
 }
 
 function mgLabels(ids: string[]) {
-  return ids.map((id) => catalogStore.muscleGroups.find((mg) => mg.id === id)?.label || id).join(', ')
+  return ids.map((id) => {
+    const label = catalogStore.muscleGroups.find((mg) => mg.id === id)?.label || id
+    return `${getMuscleGroupIcon(id)} ${label}`
+  }).join('  ')
 }
 
 async function duplicate(workoutId: number) {

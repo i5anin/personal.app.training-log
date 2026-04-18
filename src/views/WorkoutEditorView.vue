@@ -8,6 +8,7 @@ import { useCatalogStore } from '@/stores/catalogStore'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import ExerciseEntryCard from '@/components/ExerciseEntryCard.vue'
 import MuscleGroupSelect from '@/components/MuscleGroupSelect.vue'
+import MuscleGroupPhotos from '@/components/MuscleGroupPhotos.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -132,67 +133,80 @@ async function save() {
 </script>
 
 <template>
-  <div class="editor" v-if="!loading">
-    <!-- Заголовок -->
-    <div class="editor-top">
-      <div class="id-heading">
-        <span class="id-label">{{ isNew ? 'Новая тренировка' : 'Тренировка' }} #</span>
-        <input
-          type="number"
-          class="id-input"
-          v-model.number="workout.id"
-          min="1"
-          title="Номер тренировки"
+  <div class="editor-layout" v-if="!loading">
+
+    <!-- Левая колонка: форма + упражнения -->
+    <div class="col-main">
+      <div class="editor-top">
+        <div class="id-heading">
+          <span class="id-label">{{ isNew ? 'Новая тренировка' : 'Тренировка' }} #</span>
+          <input
+            type="number"
+            class="id-input"
+            v-model.number="workout.id"
+            min="1"
+            title="Номер тренировки"
+          />
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <!-- Дата -->
+        <div class="field-row">
+          <label>Дата</label>
+          <input type="date" v-model="workout.date" class="date-input" />
+        </div>
+
+        <!-- Группы мышц -->
+        <div class="field-row types-row">
+          <MuscleGroupSelect
+            :modelValue="workout.primaryType ?? ''"
+            @update:modelValue="workout.primaryType = $event"
+            label="Основная группа"
+          />
+          <MuscleGroupSelect
+            :modelValue="workout.secondaryType ?? ''"
+            @update:modelValue="workout.secondaryType = $event"
+            label="Дополнительная группа"
+            :disabledId="workout.primaryType ?? ''"
+          />
+        </div>
+
+        <!-- Описание -->
+        <div class="field-row">
+          <input
+            v-model="workout.description"
+            placeholder="Описание тренировки..."
+            class="desc-input"
+          />
+        </div>
+      </div>
+
+      <!-- Упражнения -->
+      <div class="entries">
+        <ExerciseEntryCard
+          v-for="(entry, i) in workout.entries"
+          :key="entry.id"
+          :entry="entry"
+          :muscleGroups="workout.muscleGroups"
+          :supersetLabel="getSupersetLabel(entry)"
+          @update="updateEntry(i, $event)"
+          @remove="removeEntry(i)"
         />
+      </div>
+
+      <div class="add-buttons">
+        <button class="btn" @click="addEntry">+ Упражнение</button>
+        <button class="btn" @click="addSuperset">+ Суперсет</button>
       </div>
     </div>
 
-    <div class="form-grid">
-      <!-- Дата -->
-      <div class="field-row">
-        <label>Дата</label>
-        <input type="date" v-model="workout.date" class="date-input" />
-      </div>
-
-      <!-- Группы мышц -->
-      <div class="field-row types-row">
-        <MuscleGroupSelect
-          v-model="workout.primaryType"
-          label="Основная группа"
-        />
-        <MuscleGroupSelect
-          v-model="workout.secondaryType"
-          label="Дополнительная группа"
-          :disabledId="workout.primaryType"
-        />
-      </div>
-
-      <!-- Описание -->
-      <div class="field-row">
-        <input
-          v-model="workout.description"
-          placeholder="Описание тренировки..."
-          class="desc-input"
-        />
-      </div>
-    </div>
-
-    <!-- Упражнения -->
-    <div class="entries">
-      <ExerciseEntryCard
-        v-for="(entry, i) in workout.entries"
-        :key="entry.id"
-        :entry="entry"
-        :muscleGroups="workout.muscleGroups"
-        :supersetLabel="getSupersetLabel(entry)"
-        @update="updateEntry(i, $event)"
-        @remove="removeEntry(i)"
+    <!-- Правая колонка: фото мышц (sticky) -->
+    <div class="col-photos">
+      <MuscleGroupPhotos
+        :primaryType="workout.primaryType || ''"
+        :secondaryType="workout.secondaryType || ''"
       />
-    </div>
-
-    <div class="add-buttons">
-      <button class="btn" @click="addEntry">+ Упражнение</button>
-      <button class="btn" @click="addSuperset">+ Суперсет</button>
     </div>
 
   </div>
@@ -207,9 +221,32 @@ async function save() {
 </template>
 
 <style scoped>
-.editor {
-  max-width: 720px;
+.editor-layout {
+  container-type: inline-size;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
   padding-bottom: 70px;
+}
+
+.col-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Фото справа только когда панель шире 560px */
+.col-photos {
+  display: none;
+  width: 150px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+}
+
+@container (min-width: 560px) {
+  .col-photos {
+    display: block;
+  }
 }
 
 .loading {

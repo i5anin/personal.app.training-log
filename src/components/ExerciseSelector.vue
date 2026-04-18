@@ -69,7 +69,7 @@ function addCustom() {
       @input="query = ($event.target as HTMLInputElement).value"
       @focus="onFocus"
       @blur="onBlur"
-      @keydown.enter.prevent="suggestions.length ? select(suggestions[0].id) : addCustom()"
+      @keydown.enter.prevent="suggestions.length && suggestions[0] ? select(suggestions[0].id) : addCustom()"
       class="ex-input"
     />
     <div v-if="isOpen" class="dropdown">

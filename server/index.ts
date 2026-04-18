@@ -171,6 +171,20 @@ app.post('/api/muscle-groups', async (req) => {
   return { ok: true }
 })
 
+// Muscle group reference photos (static files by name)
+app.get('/api/mg-photo', async (req: any, reply) => {
+  const filename = decodeURIComponent(req.query.name as string)
+  const filepath = join(PHOTOS_DIR, filename)
+  if (!existsSync(filepath)) return reply.status(404).send({ error: 'Not found' })
+  const ext = filename.split('.').pop()?.toLowerCase() ?? ''
+  const mime: Record<string, string> = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg',
+    avif: 'image/avif', png: 'image/png', webp: 'image/webp',
+  }
+  reply.header('Content-Type', mime[ext] ?? 'application/octet-stream')
+  return reply.send(readFileSync(filepath))
+})
+
 // Photos
 app.post('/api/photos', async (req) => {
   const file = await req.file()
