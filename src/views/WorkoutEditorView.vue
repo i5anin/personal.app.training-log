@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { nanoid } from 'nanoid'
-import type { Workout, ExerciseEntry } from '@/types'
+import type { Workout, ExerciseEntry, SetRow } from '@/types'
 import { getWorkout, getNextWorkoutId, saveWorkout } from '@/db'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useWorkoutStore } from '@/stores/workoutStore'
@@ -89,19 +89,23 @@ function syncMuscleGroups() {
 
 watch(() => [workout.value.primaryType, workout.value.secondaryType], syncMuscleGroups)
 
+function defaultSets(n = 4): SetRow[] {
+  return Array.from({ length: n }, () => ({ reps: 15, weight: 0 }))
+}
+
 function addEntry() {
   workout.value.entries.push({
     id: nanoid(),
     exerciseId: '',
-    sets: [{ reps: 15, weight: 0 }],
+    sets: defaultSets(4),
   })
 }
 
 function addSuperset() {
   const groupId = nanoid(8)
   workout.value.entries.push(
-    { id: nanoid(), exerciseId: '', sets: [{ reps: 15, weight: 0 }], supersetGroupId: groupId },
-    { id: nanoid(), exerciseId: '', sets: [{ reps: 15, weight: 0 }], supersetGroupId: groupId },
+    { id: nanoid(), exerciseId: '', sets: defaultSets(4), supersetGroupId: groupId },
+    { id: nanoid(), exerciseId: '', sets: defaultSets(4), supersetGroupId: groupId },
   )
 }
 

@@ -87,107 +87,106 @@ function pickReps(r: number) {
 <template>
   <div class="set-wrapper" :class="{ burnout: modelValue.isBurnout }">
     <div v-if="modelValue.isBurnout" class="burnout-marker">↳</div>
-    <div class="set-row">
-      <span class="set-num">{{ index + 1 }}.</span>
 
-      <!-- Weight combobox -->
-      <div class="combo">
-        <input
-          type="number"
-          :value="modelValue.weight || ''"
-          :placeholder="weightSugg.last ? String(weightSugg.last) : '0'"
-          class="num-input"
-          @input="onWeightInput"
-          @focus="onWeightFocus"
-          @blur="onWeightBlur"
-        />
-        <span class="label">кг</span>
-        <span v-if="barWeight && modelValue.weight" class="real-weight">
-          = {{ modelValue.weight + barWeight }} кг
-        </span>
-        <div class="dropdown" v-if="weightOpen && filteredWeights.length > 0">
-          <button
-            v-for="w in filteredWeights"
-            :key="w"
-            class="dd-item"
-            :class="{ active: modelValue.weight === w }"
-            @mousedown.prevent="pickWeight(w)"
-          >{{ w }}</button>
-        </div>
+    <span class="set-num">{{ index + 1 }}</span>
+
+    <!-- Weight combobox -->
+    <div class="combo">
+      <input
+        type="number"
+        :value="modelValue.weight || ''"
+        :placeholder="weightSugg.last ? String(weightSugg.last) : '0'"
+        class="num-input"
+        @input="onWeightInput"
+        @focus="onWeightFocus"
+        @blur="onWeightBlur"
+      />
+      <span class="label">кг</span>
+      <span v-if="barWeight && modelValue.weight" class="real-weight">={{ modelValue.weight + barWeight }}</span>
+      <div class="dropdown" v-if="weightOpen && filteredWeights.length > 0">
+        <button
+          v-for="w in filteredWeights"
+          :key="w"
+          class="dd-item"
+          :class="{ active: modelValue.weight === w }"
+          @mousedown.prevent="pickWeight(w)"
+        >{{ w }}</button>
       </div>
-
-      <span class="x">×</span>
-
-      <!-- Reps combobox -->
-      <div class="combo">
-        <input
-          type="number"
-          :value="modelValue.reps || ''"
-          placeholder="15"
-          class="num-input"
-          @input="onRepsInput"
-          @focus="onRepsFocus"
-          @blur="onRepsBlur"
-        />
-        <span class="label">повт</span>
-        <div class="dropdown" v-if="repsOpen && filteredReps.length > 0">
-          <button
-            v-for="r in filteredReps"
-            :key="r"
-            class="dd-item"
-            :class="{ active: modelValue.reps === r }"
-            @mousedown.prevent="pickReps(r)"
-          >{{ r }}</button>
-        </div>
-      </div>
-
-      <button class="remove-btn" @click="emit('remove')">✕</button>
     </div>
+
+    <!-- Reps combobox -->
+    <div class="combo">
+      <input
+        type="number"
+        :value="modelValue.reps || ''"
+        placeholder="15"
+        class="num-input"
+        @input="onRepsInput"
+        @focus="onRepsFocus"
+        @blur="onRepsBlur"
+      />
+      <span class="label">повт</span>
+      <div class="dropdown" v-if="repsOpen && filteredReps.length > 0">
+        <button
+          v-for="r in filteredReps"
+          :key="r"
+          class="dd-item"
+          :class="{ active: modelValue.reps === r }"
+          @mousedown.prevent="pickReps(r)"
+        >{{ r }}</button>
+      </div>
+    </div>
+
+    <button class="remove-btn" @click="emit('remove')">✕</button>
   </div>
 </template>
 
 <style scoped>
+/* Карточка подхода — вертикальный столбец */
 .set-wrapper {
-  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: #1e1e1e;
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+  padding: 6px 8px;
+  flex-shrink: 0;
+  min-width: 64px;
 }
 
 .set-wrapper.burnout {
-  margin-left: 20px;
-  border-left: 2px solid #c84;
-  padding-left: 8px;
+  border-color: #c84;
+  background: #1e1800;
 }
 
 .burnout-marker {
   color: #c84;
-  font-size: 0.7rem;
-  margin-bottom: -2px;
-}
-
-.set-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-size: 0.65rem;
+  line-height: 1;
 }
 
 .set-num {
-  color: #888;
-  font-size: 0.8rem;
-  width: 20px;
+  color: #5a8;
+  font-size: 0.72rem;
+  font-weight: bold;
 }
 
 .combo {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
 
 .num-input {
-  width: 60px;
-  padding: 4px 6px;
+  width: 52px;
+  padding: 4px 4px;
   border: 1px solid #444;
   border-radius: 4px;
-  background: #1a1a1a;
+  background: #121212;
   color: #eee;
   font-size: 0.95rem;
   text-align: center;
@@ -204,27 +203,25 @@ function pickReps(r: number) {
 }
 
 .label {
-  color: #888;
-  font-size: 0.75rem;
+  color: #555;
+  font-size: 0.65rem;
 }
 
 .real-weight {
   color: #c8a;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   white-space: nowrap;
-}
-
-.x {
-  color: #666;
 }
 
 .remove-btn {
   background: none;
   border: none;
-  color: #666;
+  color: #444;
   cursor: pointer;
-  padding: 2px 6px;
-  font-size: 0.85rem;
+  padding: 0;
+  font-size: 0.75rem;
+  line-height: 1;
+  margin-top: 2px;
 }
 
 .remove-btn:hover {

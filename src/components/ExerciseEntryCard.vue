@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { nanoid } from 'nanoid'
 import type { ExerciseEntry, SetRow } from '@/types'
 import ExerciseSelector from './ExerciseSelector.vue'
-import SetRowInput from './SetRowInput.vue'
+import SetCell from './SetCell.vue'
 import PhotoAttach from './PhotoAttach.vue'
 
 const props = defineProps<{
@@ -17,9 +17,38 @@ const emit = defineEmits<{
   remove: []
 }>()
 
-function updateExercise(id: string) {
-  emit('update', { ...props.entry, exerciseId: id })
+// Группируем подходы: каждый столбец = основной сет + N добивок после него
+interface BurnoutEntry { set: SetRow; idx: number }
+interface SetCol {
+  main: SetRow
+  mainIdx: number
+  burnouts: BurnoutEntry[]
 }
+
+const setColumns = computed<SetCol[]>(() => {
+  const cols: SetCol[] = []
+  const sets = props.entry.sets
+  let i = 0
+  while (i < sets.length) {
+    const s = sets[i]
+    if (!s.isBurnout) {
+      const col: SetCol = { main: s, mainIdx: i, burnouts: [] }
+      i++
+      while (i < sets.length && sets[i].isBurnout) {
+        col.burnouts.push({ set: sets[i], idx: i })
+        i++
+      }
+      cols.push(col)
+    } else {
+      cols.push({ main: s, mainIdx: i, burnouts: [] })
+      i++
+    }
+  }
+  return cols
+})
+
+const maxBurnouts = computed(() => Math.max(0, ...setColumns.value.map(c => c.burnouts.length)))
+const hasBurnouts  = computed(() => maxBurnouts.value > 0)
 
 function updateSet(index: number, set: SetRow) {
   const sets = [...props.entry.sets]
@@ -27,84 +56,143 @@ function updateSet(index: number, set: SetRow) {
   emit('update', { ...props.entry, sets })
 }
 
-function addSet() {
-  const lastSet = props.entry.sets[props.entry.sets.length - 1]
-  const newSet: SetRow = lastSet ? { reps: lastSet.reps, weight: lastSet.weight } : { reps: 15, weight: 0 }
-  emit('update', { ...props.entry, sets: [...props.entry.sets, newSet] })
-}
-
-function addBurnout() {
-  const lastSet = props.entry.sets[props.entry.sets.length - 1]
-  const newSet: SetRow = lastSet
-    ? { reps: lastSet.reps, weight: Math.round(lastSet.weight * 0.7 * 2) / 2, isBurnout: true }
-    : { reps: 15, weight: 0, isBurnout: true }
-  emit('update', { ...props.entry, sets: [...props.entry.sets, newSet] })
-}
-
 function removeSet(index: number) {
   const sets = props.entry.sets.filter((_, i) => i !== index)
   emit('update', { ...props.entry, sets })
 }
 
-function updateDescription(val: string) {
-  emit('update', { ...props.entry, description: val || undefined })
+function addSet() {
+  const last = props.entry.sets.filter(s => !s.isBurnout).at(-1)
+  const newSet: SetRow = last ? { reps: last.reps, weight: last.weight } : { reps: 15, weight: 0 }
+  emit('update', { ...props.entry, sets: [...props.entry.sets, newSet] })
 }
 
+function addBurnout() {
+  // Добивка добавляется после последнего основного сета
+  const sets = [...props.entry.sets]
+  const lastMainIdx = [...sets].map((s, i) => (!s.isBurnout ? i : -1)).filter(i => i >= 0).at(-1) ?? sets.length - 1
+  const lastMain = sets[lastMainIdx]
+  const newBurnout: SetRow = lastMain
+    ? { reps: lastMain.reps, weight: Math.round(lastMain.weight * 0.7 * 2) / 2, isBurnout: true }
+    : { reps: 15, weight: 0, isBurnout: true }
+  // Вставляем сразу после последнего основного
+  sets.splice(lastMainIdx + 1, 0, newBurnout)
+  emit('update', { ...props.entry, sets })
+}
+
+function addBurnoutToCol(colIdx: number) {
+  const col = setColumns.value[colIdx]
+  if (!col) return
+  // Вставляем после последней добивки этого столбца (или после основного, если добивок нет)
+  const ref = col.burnouts.at(-1) ?? { set: col.main, idx: col.mainIdx }
+  const nb: SetRow = {
+    reps: ref.set.reps,
+    weight: Math.round(ref.set.weight * 0.7 * 2) / 2,
+    isBurnout: true,
+  }
+  const sets = [...props.entry.sets]
+  sets.splice(ref.idx + 1, 0, nb)
+  emit('update', { ...props.entry, sets })
+}
+
+function updateExercise(id: string) { emit('update', { ...props.entry, exerciseId: id }) }
 function setBarWeight(w: number) {
   const cur = props.entry.barWeight ?? 0
   emit('update', { ...props.entry, barWeight: cur === w ? 0 : w })
 }
-
-function updatePhotos(ids: string[]) {
-  emit('update', { ...props.entry, photoIds: ids.length ? ids : undefined })
-}
+function updateDescription(val: string) { emit('update', { ...props.entry, description: val || undefined }) }
+function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds: ids.length ? ids : undefined }) }
 </script>
 
 <template>
   <div class="entry-card" :class="{ 'in-superset': supersetLabel }">
-    <div class="entry-header-top">
-      <span v-if="index !== undefined" class="entry-num">{{ index + 1 }}.</span>
-      <span v-if="supersetLabel" class="superset-badge">{{ supersetLabel }}</span>
-    </div>
+
+    <!-- Заголовок -->
     <div class="entry-header">
-      <ExerciseSelector
-        :modelValue="entry.exerciseId"
-        @update:modelValue="updateExercise"
-        :muscleGroups="muscleGroups"
-      />
+      <span v-if="index !== undefined" class="entry-num">{{ index + 1 }}.</span>
+      <div class="ex-selector-wrap">
+        <ExerciseSelector
+          :modelValue="entry.exerciseId"
+          @update:modelValue="updateExercise"
+          :muscleGroups="muscleGroups"
+        />
+      </div>
+      <span v-if="supersetLabel" class="superset-badge">{{ supersetLabel }}</span>
       <button class="remove-entry" @click="emit('remove')">🗑</button>
     </div>
 
     <!-- Вес штанги -->
     <div class="bar-row">
       <span class="bar-label">Штанга:</span>
-      <button
-        v-for="w in [12, 20]"
-        :key="w"
-        class="bar-btn"
-        :class="{ active: entry.barWeight === w }"
-        @click="setBarWeight(w)"
-      >{{ w }} кг</button>
-      <span v-if="entry.barWeight" class="bar-hint">+ {{ entry.barWeight }} кг к весу</span>
+      <button v-for="w in [12, 20]" :key="w" class="bar-btn"
+        :class="{ active: entry.barWeight === w }" @click="setBarWeight(w)">{{ w }} кг</button>
+      <span v-if="entry.barWeight" class="bar-hint">+ {{ entry.barWeight }} кг</span>
     </div>
 
-    <div class="sets">
-      <SetRowInput
-        v-for="(set, i) in entry.sets"
-        :key="i"
-        :modelValue="set"
-        @update:modelValue="updateSet(i, $event)"
-        @remove="removeSet(i)"
-        :exerciseId="entry.exerciseId"
-        :index="i"
-        :barWeight="entry.barWeight ?? 0"
-      />
-      <div class="set-buttons">
-        <button class="btn btn-add-set" @click="addSet">+ подход</button>
-        <button class="btn btn-add-set btn-burnout" @click="addBurnout">+ добивка</button>
+    <!-- Таблица подходов -->
+    <div class="sets-wrap">
+      <table class="sets-table">
+        <thead>
+          <tr>
+            <th v-for="(col, ci) in setColumns" :key="ci" class="th-num">{{ ci + 1 }}</th>
+            <th class="th-add">
+              <button class="add-col-btn" @click="addSet" title="+ подход">+</button>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Основные подходы -->
+          <tr class="main-row">
+            <td v-for="(col, ci) in setColumns" :key="ci" class="td-main">
+              <SetCell
+                :modelValue="col.main"
+                :exerciseId="entry.exerciseId"
+                :barWeight="entry.barWeight ?? 0"
+                @update:modelValue="updateSet(col.mainIdx, $event)"
+                @remove="removeSet(col.mainIdx)"
+              />
+            </td>
+            <td></td>
+          </tr>
+
+          <!-- Строки добивок (по одной строке на каждый уровень добивок) -->
+          <tr v-for="ri in maxBurnouts" :key="'b' + ri" class="burnout-row">
+            <td v-for="(col, ci) in setColumns" :key="ci"
+              class="td-burnout" :class="{ filled: !!col.burnouts[ri - 1] }">
+              <SetCell
+                v-if="col.burnouts[ri - 1]"
+                :modelValue="col.burnouts[ri - 1].set"
+                :exerciseId="entry.exerciseId"
+                :barWeight="entry.barWeight ?? 0"
+                @update:modelValue="updateSet(col.burnouts[ri - 1].idx, $event)"
+                @remove="removeSet(col.burnouts[ri - 1].idx)"
+              />
+              <!-- кнопка + для следующей добивки в этом столбце -->
+              <button
+                v-else-if="ri - 1 === col.burnouts.length"
+                class="add-burnout-here"
+                @click="addBurnoutToCol(ci)"
+                title="добавить добивку">↳</button>
+            </td>
+            <td></td>
+          </tr>
+          <!-- Строка с кнопками ↳ для первой добивки (если добивок ещё нет) -->
+          <tr v-if="!hasBurnouts" class="burnout-hint-row">
+            <td v-for="(col, ci) in setColumns" :key="ci" class="td-burnout">
+              <button class="add-burnout-here" @click="addBurnoutToCol(ci)">↳</button>
+            </td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="table-actions">
+        <button class="btn btn-add" @click="addSet">+ подход</button>
+        <button class="btn btn-add btn-burnout" @click="addBurnout">+ добивка</button>
       </div>
     </div>
 
+    <!-- Заметка + фото -->
     <div class="extras">
       <input
         :value="entry.description || ''"
@@ -126,43 +214,30 @@ function updatePhotos(ids: string[]) {
   margin-bottom: 8px;
 }
 
-.entry-header-top {
+.in-superset { border-left: 3px solid #5a8; }
+
+.entry-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .entry-num {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: bold;
   color: #5a8;
-  background: #1a2a22;
-  border: 1px solid #3a6a4a;
-  border-radius: 4px;
-  padding: 1px 6px;
-  line-height: 1.4;
+  flex-shrink: 0;
+  min-width: 18px;
 }
 
-.in-superset {
-  border-left: 3px solid #5a8;
-}
+.ex-selector-wrap { flex: 1; }
 
 .superset-badge {
   font-size: 0.7rem;
   color: #5a8;
   font-weight: bold;
-}
-
-.entry-header {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.entry-header > :first-child {
-  flex: 1;
+  white-space: nowrap;
 }
 
 .remove-entry {
@@ -171,20 +246,17 @@ function updatePhotos(ids: string[]) {
   cursor: pointer;
   font-size: 1rem;
   padding: 4px;
+  flex-shrink: 0;
 }
 
+/* Штанга */
 .bar-row {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
-
-.bar-label {
-  font-size: 0.72rem;
-  color: #555;
-}
-
+.bar-label { font-size: 0.72rem; color: #555; }
 .bar-btn {
   padding: 2px 8px;
   border: 1px solid #444;
@@ -194,28 +266,82 @@ function updatePhotos(ids: string[]) {
   cursor: pointer;
   font-size: 0.75rem;
 }
+.bar-btn:hover { border-color: #888; color: #ccc; }
+.bar-btn.active { border-color: #c8a; background: #3a2a1a; color: #c8a; }
+.bar-hint { font-size: 0.7rem; color: #c8a; }
 
-.bar-btn:hover {
-  border-color: #888;
-  color: #ccc;
+/* Таблица */
+.sets-wrap { margin-bottom: 6px; }
+
+.sets-table {
+  border-collapse: collapse;
+  width: 100%;
 }
 
-.bar-btn.active {
-  border-color: #c8a;
-  background: #3a2a1a;
-  color: #c8a;
-}
-
-.bar-hint {
+.th-num {
   font-size: 0.7rem;
-  color: #c8a;
+  color: #5a8;
+  font-weight: bold;
+  text-align: center;
+  padding: 2px 4px 4px;
+  min-width: 90px;
 }
 
-.sets {
-  margin-bottom: 6px;
+.th-add { width: 30px; }
+
+.add-col-btn {
+  background: none;
+  border: 1px dashed #444;
+  border-radius: 4px;
+  color: #555;
+  cursor: pointer;
+  font-size: 1rem;
+  width: 24px;
+  height: 24px;
+  line-height: 1;
+}
+.add-col-btn:hover { border-color: #5a8; color: #5a8; }
+
+/* Основные ячейки */
+.td-main {
+  padding: 2px 2px;
+  vertical-align: middle;
 }
 
-.btn-add-set {
+/* Добивки */
+.td-burnout {
+  padding: 2px 2px;
+  vertical-align: middle;
+}
+
+.td-burnout.filled {
+  background: #1e1400;
+  border-top: 1px solid #3a2a00;
+}
+
+.add-burnout-here {
+  background: none;
+  border: 1px dashed #4a3a00;
+  border-radius: 4px;
+  color: #5a4a00;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  width: 100%;
+}
+.add-burnout-here:hover { border-color: #c84; color: #c84; }
+
+.burnout-hint-row .td-burnout { opacity: 0.35; }
+.burnout-hint-row .td-burnout:hover { opacity: 1; }
+
+/* Кнопки под таблицей */
+.table-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.btn-add {
   padding: 3px 12px;
   border: 1px dashed #444;
   border-radius: 4px;
@@ -223,36 +349,17 @@ function updatePhotos(ids: string[]) {
   color: #888;
   cursor: pointer;
   font-size: 0.8rem;
-  margin-top: 4px;
 }
+.btn-add:hover { border-color: #5a8; color: #5a8; }
+.btn-burnout { border-color: #c84; color: #c84; }
+.btn-burnout:hover { border-color: #da5 !important; color: #da5 !important; }
 
-.btn-add-set:hover {
-  border-color: #5a8;
-  color: #5a8;
-}
-
-.set-buttons {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.btn-burnout {
-  border-color: #c84;
-  color: #c84;
-}
-
-.btn-burnout:hover {
-  border-color: #da5 !important;
-  color: #da5 !important;
-}
-
+/* Заметка */
 .extras {
   display: flex;
   gap: 8px;
   align-items: center;
 }
-
 .note-input {
   flex: 1;
   padding: 4px 8px;

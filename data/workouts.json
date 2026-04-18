@@ -381,5 +381,193 @@
     "description": "",
     "primaryType": "legs",
     "secondaryType": ""
+  },
+  {
+    "id": 58,
+    "date": "2023-11-22",
+    "muscleGroups": [
+      "arms"
+    ],
+    "entries": [
+      {
+        "id": "obNugzVJkDf1W1JD8CjxN",
+        "exerciseId": "подъем-прямого-грифа",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 20
+          },
+          {
+            "reps": 12,
+            "weight": 25
+          },
+          {
+            "reps": 10,
+            "weight": 25
+          },
+          {
+            "reps": 10,
+            "weight": 25
+          }
+        ],
+        "barWeight": 0
+      }
+    ],
+    "description": "",
+    "primaryType": "arms",
+    "secondaryType": ""
+  },
+  {
+    "id": 59,
+    "date": "2023-11-15",
+    "muscleGroups": [
+      "chest"
+    ],
+    "primaryType": "chest",
+    "secondaryType": "",
+    "description": "ГПТ ДОБАВИЛ Силовая тренировка — Грудь",
+    "entries": [
+      {
+        "id": "w59-e1",
+        "exerciseId": "bench-press",
+        "barWeight": 20,
+        "sets": [
+          {
+            "weight": 0,
+            "reps": 12
+          },
+          {
+            "weight": 37.25,
+            "reps": 14
+          },
+          {
+            "weight": 35,
+            "reps": 12,
+            "isBurnout": true
+          },
+          {
+            "weight": 47.5,
+            "reps": 8
+          },
+          {
+            "weight": 45,
+            "reps": 8,
+            "isBurnout": true
+          },
+          {
+            "weight": 57.5,
+            "reps": 3
+          },
+          {
+            "weight": 55,
+            "reps": 4,
+            "isBurnout": true
+          },
+          {
+            "weight": 65,
+            "reps": 1
+          },
+          {
+            "weight": 62.5,
+            "reps": 1,
+            "isBurnout": true
+          }
+        ]
+      },
+      {
+        "id": "w59-e2",
+        "exerciseId": "incline-bench-press",
+        "sets": [
+          {
+            "weight": 14,
+            "reps": 15
+          },
+          {
+            "weight": 18,
+            "reps": 12
+          },
+          {
+            "weight": 22,
+            "reps": 8
+          },
+          {
+            "weight": 10,
+            "reps": 10,
+            "isBurnout": true
+          },
+          {
+            "weight": 20,
+            "reps": 10
+          },
+          {
+            "weight": 10,
+            "reps": 8,
+            "isBurnout": true
+          }
+        ]
+      },
+      {
+        "id": "w59-e3",
+        "exerciseId": "электро-хамер",
+        "sets": [
+          {
+            "weight": 17.5,
+            "reps": 10
+          },
+          {
+            "weight": 22.5,
+            "reps": 15
+          },
+          {
+            "weight": 25,
+            "reps": 15
+          },
+          {
+            "weight": 25,
+            "reps": 15
+          }
+        ]
+      },
+      {
+        "id": "w59-e4",
+        "exerciseId": "сведения-рук-бабочка",
+        "sets": [
+          {
+            "weight": 25,
+            "reps": 15
+          },
+          {
+            "weight": 30,
+            "reps": 15
+          },
+          {
+            "weight": 35,
+            "reps": 15
+          },
+          {
+            "weight": 40,
+            "reps": 12
+          }
+        ]
+      },
+      {
+        "id": "w59-e5",
+        "exerciseId": "выжимание-блина",
+        "sets": [
+          {
+            "weight": 5,
+            "reps": 20
+          },
+          {
+            "weight": 5,
+            "reps": 15
+          },
+          {
+            "weight": 10,
+            "reps": 12
+          }
+        ]
+      }
+    ]
   }
 ]
