@@ -838,7 +838,8 @@
           }
         ],
         "createdAt": "2026-04-19T16:35:47.272Z",
-        "totalEditMs": 179803
+        "totalEditMs": 363980,
+        "description": "Б"
       },
       {
         "id": "Pu91CXFZOsOMy1oXSc2bh",
@@ -862,7 +863,8 @@
           }
         ],
         "createdAt": "2026-04-19T16:36:41.010Z",
-        "totalEditMs": 124171
+        "totalEditMs": 308348,
+        "description": "Б"
       },
       {
         "id": "ibLDFYVjuMfGyz9jVDctD",
@@ -886,13 +888,80 @@
           }
         ],
         "createdAt": "2026-04-19T16:37:44.236Z",
-        "totalEditMs": 62839
+        "totalEditMs": 247016,
+        "description": "Т"
+      },
+      {
+        "id": "Ijmu8IY0h2-NP9t2yifE-",
+        "exerciseId": "опускание-гантелей-на-скамье-под-90-гр",
+        "sets": [
+          {
+            "reps": 12,
+            "weight": 18
+          },
+          {
+            "reps": 12,
+            "weight": 18
+          },
+          {
+            "reps": 12,
+            "weight": 18
+          },
+          {
+            "reps": 12,
+            "weight": 18
+          }
+        ],
+        "createdAt": "2026-04-19T16:46:57.972Z",
+        "totalEditMs": 164669,
+        "description": "Т"
+      },
+      {
+        "id": "35BmgAyPD7wWFdOI88N-k",
+        "exerciseId": "молот-подём-стоя",
+        "sets": [
+          {
+            "reps": 20,
+            "weight": 6
+          },
+          {
+            "reps": 20,
+            "weight": 8
+          },
+          {
+            "reps": 20,
+            "weight": 8
+          }
+        ],
+        "createdAt": "2026-04-19T16:47:49.760Z",
+        "totalEditMs": 112881,
+        "description": "Т"
+      },
+      {
+        "id": "6tReDQybUsX4Q4CorgYHP",
+        "exerciseId": "опускане-каната",
+        "sets": [
+          {
+            "reps": 20,
+            "weight": 23
+          },
+          {
+            "reps": 20,
+            "weight": 23
+          },
+          {
+            "reps": 20,
+            "weight": 23
+          }
+        ],
+        "createdAt": "2026-04-19T16:48:49.607Z",
+        "totalEditMs": 53034
       }
     ],
     "description": "",
     "primaryType": "arms",
     "secondaryType": "",
     "createdAt": "2026-04-19T16:35:30.570Z",
-    "totalEditMs": 196482
+    "totalEditMs": 380659
   }
 ]
