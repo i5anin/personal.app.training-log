@@ -102,6 +102,22 @@ function setBarWeight(w: number) {
 }
 function updateDescription(val: string) { emit('update', { ...props.entry, description: val || undefined }) }
 function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds: ids.length ? ids : undefined }) }
+
+function formatMs(ms: number): string {
+  const s = Math.round(ms / 1000)
+  if (s < 60) return `${s}с`
+  const m = Math.floor(s / 60)
+  const sec = s % 60
+  if (m < 60) return sec > 0 ? `${m}м ${sec}с` : `${m}м`
+  const h = Math.floor(m / 60)
+  return `${h}ч ${m % 60}м`
+}
+
+function createdAtLabel(iso?: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
 </script>
 
 <template>
@@ -118,6 +134,11 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
         />
       </div>
       <span v-if="supersetLabel" class="superset-badge">{{ supersetLabel }}</span>
+      <span
+        v-if="entry.totalEditMs != null && entry.totalEditMs > 0"
+        class="entry-time"
+        :title="entry.createdAt ? 'Создано: ' + createdAtLabel(entry.createdAt) : ''"
+      >⏱ {{ formatMs(entry.totalEditMs) }}</span>
       <button class="remove-entry" @click="emit('remove')">🗑</button>
     </div>
 
@@ -240,6 +261,14 @@ function updatePhotos(ids: string[]) { emit('update', { ...props.entry, photoIds
   color: #5a8;
   font-weight: bold;
   white-space: nowrap;
+}
+
+.entry-time {
+  font-size: 0.7rem;
+  color: #5a8;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: default;
 }
 
 .remove-entry {

@@ -65,8 +65,8 @@ html, body {
 
 /* ─── Левая панель ─── */
 .panel-list {
-  width: 280px;
-  min-width: 200px;
+  width: 320px;
+  min-width: 220px;
   flex-shrink: 0;
   border-right: 1px solid #2a2a2a;
   display: flex;

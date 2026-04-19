@@ -23,6 +23,8 @@ export interface ExerciseEntry {
   description?: string
   photoIds?: string[]
   barWeight?: number
+  createdAt?: string
+  totalEditMs?: number
 }
 
 export interface Workout {
@@ -34,6 +36,8 @@ export interface Workout {
   photoIds?: string[]
   primaryType?: string
   secondaryType?: string
+  createdAt?: string
+  totalEditMs?: number
 }
 
 export interface PhotoRecord {

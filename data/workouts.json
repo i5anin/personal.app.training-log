@@ -569,5 +569,330 @@
         ]
       }
     ]
+  },
+  {
+    "id": 60,
+    "date": "2026-04-19",
+    "muscleGroups": [
+      "back"
+    ],
+    "entries": [
+      {
+        "id": "1rAvFosjdtxti12tvfd9T",
+        "exerciseId": "турник",
+        "sets": [
+          {
+            "reps": 10,
+            "weight": 6.25
+          },
+          {
+            "reps": 8,
+            "weight": 7.5
+          },
+          {
+            "reps": 4,
+            "weight": 8.75
+          },
+          {
+            "reps": 3,
+            "weight": 11.25
+          }
+        ],
+        "createdAt": "2026-04-19T16:23:56.790Z",
+        "totalEditMs": 228718
+      },
+      {
+        "id": "aOAEvkwmvwvdRCtZOSxXu",
+        "exerciseId": "barbell-row",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 0
+          },
+          {
+            "reps": 15,
+            "weight": 7.5
+          },
+          {
+            "reps": 15,
+            "weight": 10
+          },
+          {
+            "reps": 15,
+            "weight": 12.5
+          }
+        ],
+        "createdAt": "2026-04-19T16:24:44.024Z",
+        "totalEditMs": 181485
+      },
+      {
+        "id": "a_i09vw05fJ6REVLmOJuw",
+        "exerciseId": "dumbbell-row",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 10
+          },
+          {
+            "reps": 15,
+            "weight": 12
+          },
+          {
+            "reps": 12,
+            "weight": 16
+          },
+          {
+            "reps": 10,
+            "weight": 18
+          }
+        ],
+        "createdAt": "2026-04-19T16:25:28.110Z",
+        "totalEditMs": 137399,
+        "description": "с упором в скамью "
+      },
+      {
+        "id": "Q_N9Guv-BCXCVqWJsSV5u",
+        "exerciseId": "lat-pulldown",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 30
+          },
+          {
+            "reps": 15,
+            "weight": 35
+          },
+          {
+            "reps": 15,
+            "weight": 40
+          },
+          {
+            "reps": 15,
+            "weight": 45
+          },
+          {
+            "reps": 12,
+            "weight": 25,
+            "isBurnout": true
+          }
+        ],
+        "createdAt": "2026-04-19T16:26:21.580Z",
+        "totalEditMs": 83929,
+        "description": "широкая рукоять ноги вперед обратный хват"
+      }
+    ],
+    "description": "",
+    "primaryType": "back",
+    "secondaryType": "",
+    "createdAt": "2026-04-19T16:23:51.782Z",
+    "totalEditMs": 233707
+  },
+  {
+    "id": 53,
+    "date": "2026-04-19",
+    "muscleGroups": [
+      "back"
+    ],
+    "entries": [
+      {
+        "id": "1rAvFosjdtxti12tvfd9T",
+        "exerciseId": "турник",
+        "sets": [
+          {
+            "reps": 10,
+            "weight": 6.25
+          },
+          {
+            "reps": 8,
+            "weight": 7.5
+          },
+          {
+            "reps": 4,
+            "weight": 8.75
+          },
+          {
+            "reps": 3,
+            "weight": 11.25
+          }
+        ],
+        "createdAt": "2026-04-19T16:23:56.790Z",
+        "totalEditMs": 250837
+      },
+      {
+        "id": "aOAEvkwmvwvdRCtZOSxXu",
+        "exerciseId": "barbell-row",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 0
+          },
+          {
+            "reps": 15,
+            "weight": 7.5
+          },
+          {
+            "reps": 15,
+            "weight": 10
+          },
+          {
+            "reps": 15,
+            "weight": 12.5
+          }
+        ],
+        "createdAt": "2026-04-19T16:24:44.024Z",
+        "totalEditMs": 203604
+      },
+      {
+        "id": "a_i09vw05fJ6REVLmOJuw",
+        "exerciseId": "dumbbell-row",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 10
+          },
+          {
+            "reps": 15,
+            "weight": 12
+          },
+          {
+            "reps": 12,
+            "weight": 16
+          },
+          {
+            "reps": 10,
+            "weight": 18
+          }
+        ],
+        "createdAt": "2026-04-19T16:25:28.110Z",
+        "totalEditMs": 159518,
+        "description": "с упором в скамью "
+      },
+      {
+        "id": "Q_N9Guv-BCXCVqWJsSV5u",
+        "exerciseId": "lat-pulldown",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 30
+          },
+          {
+            "reps": 15,
+            "weight": 35
+          },
+          {
+            "reps": 15,
+            "weight": 40
+          },
+          {
+            "reps": 15,
+            "weight": 45
+          },
+          {
+            "reps": 12,
+            "weight": 25,
+            "isBurnout": true
+          }
+        ],
+        "createdAt": "2026-04-19T16:26:21.580Z",
+        "totalEditMs": 106048,
+        "description": "широкая рукоять ноги вперед обратный хват"
+      }
+    ],
+    "description": "",
+    "primaryType": "back",
+    "secondaryType": "",
+    "createdAt": "2026-04-19T16:23:51.782Z",
+    "totalEditMs": 255826
+  },
+  {
+    "id": 52,
+    "date": "2026-04-19",
+    "muscleGroups": [
+      "arms"
+    ],
+    "entries": [
+      {
+        "id": "jsNMbnJSvzZKzSWsvJ4Up",
+        "exerciseId": "подъем-прямого-грифа",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 10
+          },
+          {
+            "reps": 15,
+            "weight": 10
+          },
+          {
+            "reps": 15,
+            "weight": 15
+          },
+          {
+            "reps": 10,
+            "weight": 17.5
+          },
+          {
+            "reps": 5,
+            "weight": 17.5,
+            "isBurnout": true
+          }
+        ],
+        "createdAt": "2026-04-19T16:35:47.272Z",
+        "totalEditMs": 179803
+      },
+      {
+        "id": "Pu91CXFZOsOMy1oXSc2bh",
+        "exerciseId": "подъем-2х-рукоятей-импульс",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 8.75
+          },
+          {
+            "reps": 12,
+            "weight": 10
+          },
+          {
+            "reps": 10,
+            "weight": 12.5
+          },
+          {
+            "reps": 10,
+            "weight": 12.5
+          }
+        ],
+        "createdAt": "2026-04-19T16:36:41.010Z",
+        "totalEditMs": 124171
+      },
+      {
+        "id": "ibLDFYVjuMfGyz9jVDctD",
+        "exerciseId": "опускание-прямой-рукояти-в-кроссовере",
+        "sets": [
+          {
+            "reps": 15,
+            "weight": 23
+          },
+          {
+            "reps": 15,
+            "weight": 27
+          },
+          {
+            "reps": 15,
+            "weight": 32
+          },
+          {
+            "reps": 15,
+            "weight": 36
+          }
+        ],
+        "createdAt": "2026-04-19T16:37:44.236Z",
+        "totalEditMs": 62839
+      }
+    ],
+    "description": "",
+    "primaryType": "arms",
+    "secondaryType": "",
+    "createdAt": "2026-04-19T16:35:30.570Z",
+    "totalEditMs": 196482
   }
 ]

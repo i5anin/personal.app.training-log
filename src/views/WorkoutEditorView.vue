@@ -18,6 +18,37 @@ const workoutStore = useWorkoutStore()
 const loading = ref(false)
 const saving = ref(false)
 
+const MAX_SESSION_MS = 5 * 60 * 1000
+let workoutSessionStart = 0
+
+function startWorkoutSession() {
+  workoutSessionStart = Date.now()
+}
+
+function finalizeWorkoutTime() {
+  if (!workoutSessionStart) return
+  const elapsed = Math.min(Date.now() - workoutSessionStart, MAX_SESSION_MS)
+  if (elapsed >= 2000) {
+    workout.value.totalEditMs = (workout.value.totalEditMs ?? 0) + elapsed
+  }
+  workoutSessionStart = Date.now()
+}
+
+// keep per-entry session helpers for the badge in ExerciseEntryCard
+const entrySessionStarts = new Map<string, number>()
+function startEntrySession(id: string) { entrySessionStarts.set(id, Date.now()) }
+function finalizeEntryTimes() {
+  const now = Date.now()
+  workout.value.entries = workout.value.entries.map((entry) => {
+    const start = entrySessionStarts.get(entry.id)
+    if (start == null) return entry
+    const elapsed = Math.min(now - start, MAX_SESSION_MS)
+    if (elapsed < 2000) return entry
+    return { ...entry, totalEditMs: (entry.totalEditMs ?? 0) + elapsed }
+  })
+  workout.value.entries.forEach((e) => startEntrySession(e.id))
+}
+
 const isNew = computed(() => route.name === 'new-workout')
 
 const emptyWorkout = (): Workout => ({
@@ -28,6 +59,8 @@ const emptyWorkout = (): Workout => ({
   description: '',
   primaryType: '',
   secondaryType: '',
+  createdAt: new Date().toISOString(),
+  totalEditMs: 0,
 })
 
 const workout = ref<Workout>(emptyWorkout())
@@ -73,6 +106,8 @@ async function loadWorkout() {
   } finally {
     loading.value = false
   }
+  workout.value.entries.forEach((e) => startEntrySession(e.id))
+  startWorkoutSession()
 }
 
 watch(() => [route.name, route.params.id], loadWorkout, { immediate: true })
@@ -94,19 +129,24 @@ function defaultSets(n = 4): SetRow[] {
 }
 
 function addEntry() {
-  workout.value.entries.push({
+  const entry = {
     id: nanoid(),
     exerciseId: '',
     sets: defaultSets(4),
-  })
+    createdAt: new Date().toISOString(),
+    totalEditMs: 0,
+  }
+  workout.value.entries.push(entry)
+  startEntrySession(entry.id)
 }
 
 function addSuperset() {
   const groupId = nanoid(8)
-  workout.value.entries.push(
-    { id: nanoid(), exerciseId: '', sets: defaultSets(4), supersetGroupId: groupId },
-    { id: nanoid(), exerciseId: '', sets: defaultSets(4), supersetGroupId: groupId },
-  )
+  const e1 = { id: nanoid(), exerciseId: '', sets: defaultSets(4), supersetGroupId: groupId, createdAt: new Date().toISOString(), totalEditMs: 0 }
+  const e2 = { id: nanoid(), exerciseId: '', sets: defaultSets(4), supersetGroupId: groupId, createdAt: new Date().toISOString(), totalEditMs: 0 }
+  workout.value.entries.push(e1, e2)
+  startEntrySession(e1.id)
+  startEntrySession(e2.id)
 }
 
 function updateEntry(index: number, entry: ExerciseEntry) {
@@ -127,6 +167,8 @@ function getSupersetLabel(entry: ExerciseEntry): string | undefined {
 async function save() {
   if (saving.value) return
   saving.value = true
+  finalizeWorkoutTime()
+  finalizeEntryTimes()
   try {
     await saveWorkout(JSON.parse(JSON.stringify(workout.value)))
     await workoutStore.load()
@@ -395,7 +437,7 @@ async function save() {
   position: fixed;
   bottom: 0;
   right: 0;
-  left: 280px; /* ширина левой панели */
+  left: 320px;
   padding: 10px 24px;
   background: #121212;
   border-top: 1px solid #2a2a2a;

@@ -5,6 +5,8 @@ import { useWorkoutStore } from '@/stores/workoutStore'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { deleteWorkout, exportAll, importAll } from '@/db'
 import { getMuscleGroupIcon } from '@/constants/muscleGroupIcons'
+
+const ENTRIES_GOAL = 245
 const route = useRoute()
 const router = useRouter()
 const workoutStore = useWorkoutStore()
@@ -29,7 +31,7 @@ const filtered = computed(() => {
 
 function formatDate(iso: string) {
   const d = new Date(iso)
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 }
 
 // Разрыв между тренировками в днях
@@ -61,6 +63,14 @@ function mgLabels(ids: string[]) {
   }).join('  ')
 }
 
+function mgIcons(ids: string[]) {
+  return ids.map((id) => getMuscleGroupIcon(id)).join(' ')
+}
+
+function mgTooltip(ids: string[]) {
+  return ids.map((id) => catalogStore.muscleGroups.find((mg) => mg.id === id)?.label || id).join(', ')
+}
+
 async function duplicate(workoutId: number) {
   router.push({ name: 'new-workout', query: { from: workoutId } })
 }
@@ -82,6 +92,48 @@ async function doExport() {
   a.click()
   URL.revokeObjectURL(url)
 }
+
+// --- Progress stats ---
+const totalEntries = computed(() => workoutStore.workouts.length)
+
+const workoutRange = computed(() => {
+  if (!workoutStore.workouts.length) return ''
+  const ids = workoutStore.workouts.map((w) => w.id)
+  const mn = Math.min(...ids)
+  const mx = Math.max(...ids)
+  return mn === mx ? `#${mn}` : `#${mn}–#${mx}`
+})
+
+const avgEditMs = computed((): number | null => {
+  const times = workoutStore.workouts
+    .map((w) => w.totalEditMs)
+    .filter((ms): ms is number => typeof ms === 'number' && ms > 500)
+  if (!times.length) return null
+  const sorted = [...times].sort((a, b) => a - b)
+  const median = sorted[Math.floor(sorted.length / 2)] ?? Infinity
+  const clean = times.filter((ms) => ms <= median * 3)
+  if (!clean.length) return null
+  return clean.reduce((s, ms) => s + ms, 0) / clean.length
+})
+
+const remaining = computed(() => Math.max(0, ENTRIES_GOAL - totalEntries.value))
+
+const etaMs = computed((): number | null => {
+  if (!avgEditMs.value) return null
+  return remaining.value * avgEditMs.value
+})
+
+function fmtDuration(ms: number): string {
+  const s = Math.round(ms / 1000)
+  if (s < 60) return `${s}с`
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}м`
+  const h = Math.floor(m / 60)
+  const rm = m % 60
+  return rm > 0 ? `${h}ч ${rm}м` : `${h}ч`
+}
+
+const progressPct = computed(() => Math.min(100, (totalEntries.value / ENTRIES_GOAL) * 100))
 
 async function doImport() {
   const input = document.createElement('input')
@@ -115,43 +167,83 @@ async function doImport() {
       <button class="btn btn-sm" @click="doImport">📥</button>
     </div>
 
-    <div v-if="filtered.length === 0" class="empty">
-      Нет тренировок
-    </div>
-
-    <div
-      v-for="w in filtered"
-      :key="w.id"
-      class="workout-card"
-      :class="{ active: w.id === activeId }"
-      @click="router.push({ name: 'edit-workout', params: { id: w.id } })"
-    >
-      <div class="card-header">
-        <span class="workout-id">#{{ w.id }}</span>
-        <span class="workout-date">{{ formatDate(w.date) }}</span>
+    <!-- Панель прогресса записей -->
+    <div class="progress-panel">
+      <div class="progress-header">
+        <span class="progress-label">Записи</span>
+        <span class="progress-fraction">{{ totalEntries }} / {{ ENTRIES_GOAL }}</span>
       </div>
-      <div class="card-muscles" v-if="w.muscleGroups.length">{{ mgLabels(w.muscleGroups) }}</div>
-      <!-- Время с предыдущей тренировки -->
-      <div class="card-since">
-        <template v-if="filtered.indexOf(w) === 0">
-          {{ sinceToday(w.date) }}
-        </template>
-        <template v-if="filtered.indexOf(w) < filtered.length - 1">
-          · {{ formatGap(gapDays(filtered[filtered.indexOf(w) + 1]!.date, w.date)) }} после предыдущей
-        </template>
+      <div class="progress-track">
+        <div class="progress-fill" :style="{ width: progressPct + '%' }" />
       </div>
-      <div class="card-footer">
-        <span class="card-exercises">
-          {{ w.entries.length }} упр.
-          <span v-if="w.entries.reduce((s, e) => s + e.sets.length, 0)">
-            · {{ w.entries.reduce((s, e) => s + e.sets.length, 0) }} подх.
-          </span>
-        </span>
-        <div class="card-actions" @click.stop>
-          <button class="btn btn-xs" title="Дублировать" @click="duplicate(w.id)">📋</button>
-          <button class="btn btn-xs btn-danger" title="Удалить" @click="remove(w.id)">✕</button>
+      <div class="progress-cells">
+        <div class="pcell">
+          <span class="pcell-val">{{ totalEntries }}</span>
+          <span class="pcell-lbl">добавлено</span>
+        </div>
+        <div class="pcell" v-if="workoutRange">
+          <span class="pcell-val">тр. {{ workoutRange }}</span>
+          <span class="pcell-lbl">тренировки</span>
+        </div>
+        <div class="pcell">
+          <span class="pcell-val">{{ remaining }}</span>
+          <span class="pcell-lbl">осталось</span>
+        </div>
+        <div class="pcell">
+          <span class="pcell-val">{{ avgEditMs ? '~' + fmtDuration(avgEditMs) : '—' }}</span>
+          <span class="pcell-lbl">сред./тр.</span>
+        </div>
+        <div class="pcell pcell-eta">
+          <span class="pcell-val">{{ etaMs ? '~' + fmtDuration(etaMs) : '—' }}</span>
+          <span class="pcell-lbl">ETA</span>
         </div>
       </div>
+    </div>
+
+    <div v-if="filtered.length === 0" class="empty">Нет тренировок</div>
+
+    <div class="table-wrap" v-else>
+      <table class="wt">
+        <thead>
+          <tr>
+            <th class="th-id">#</th>
+            <th class="th-date">Дата</th>
+            <th class="th-mg">Мышцы</th>
+            <th class="th-ex">Упр.</th>
+            <th class="th-time">⏱</th>
+            <th class="th-act"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(w, i) in filtered"
+            :key="w.id"
+            class="wrow"
+            :class="{ active: w.id === activeId }"
+            @click="router.push({ name: 'edit-workout', params: { id: w.id } })"
+          >
+            <td class="td-id">#{{ w.id }}</td>
+            <td class="td-date">
+              <div>{{ formatDate(w.date) }}</div>
+              <div class="td-gap" v-if="i < filtered.length - 1">
+                +{{ gapDays(filtered[i + 1]!.date, w.date) }}д
+              </div>
+            </td>
+            <td class="td-mg" :title="mgTooltip(w.muscleGroups)">{{ mgIcons(w.muscleGroups) }}</td>
+            <td class="td-ex">
+              {{ w.entries.length }}<span class="td-sets" v-if="w.entries.reduce((s,e)=>s+e.sets.length,0)"> / {{ w.entries.reduce((s,e)=>s+e.sets.length,0) }}</span>
+            </td>
+            <td class="td-time">
+              <span v-if="w.totalEditMs && w.totalEditMs > 0" class="time-badge">{{ fmtDuration(w.totalEditMs) }}</span>
+              <span v-else class="time-none">—</span>
+            </td>
+            <td class="td-act" @click.stop>
+              <button class="btn btn-xs" title="Дублировать" @click="duplicate(w.id)">📋</button>
+              <button class="btn btn-xs btn-danger" title="Удалить" @click="remove(w.id)">✕</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -192,6 +284,84 @@ async function doImport() {
   flex: 1;
 }
 
+.progress-panel {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+
+.progress-label {
+  font-size: 0.72rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.progress-fraction {
+  font-size: 0.8rem;
+  color: #5a8;
+  font-weight: bold;
+}
+
+.progress-track {
+  height: 4px;
+  background: #2a2a2a;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 7px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #5a8;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.progress-cells {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pcell {
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 5px;
+  padding: 3px 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+}
+
+.pcell-eta .pcell-val {
+  color: #5a8;
+}
+
+.pcell-val {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #ccc;
+  line-height: 1.2;
+}
+
+.pcell-lbl {
+  font-size: 0.62rem;
+  color: #555;
+  line-height: 1.2;
+}
+
 .empty {
   text-align: center;
   color: #555;
@@ -199,74 +369,106 @@ async function doImport() {
   font-size: 0.85rem;
 }
 
-/* Скроллируемый список */
-.workout-card {
-  background: #1a1a1a;
-  border: 1px solid #2e2e2e;
-  border-radius: 7px;
-  padding: 9px 10px;
-  margin-bottom: 6px;
+.table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.wt {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.wt thead th {
+  position: sticky;
+  top: 0;
+  background: #161616;
+  color: #555;
+  font-weight: 600;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 4px 6px;
+  border-bottom: 1px solid #2a2a2a;
+  white-space: nowrap;
+}
+
+.wrow {
   cursor: pointer;
-  flex-shrink: 0;
-  transition: border-color 0.15s;
+  border-bottom: 1px solid #1e1e1e;
+  transition: background 0.1s;
 }
 
-.workout-card:hover {
-  border-color: #4a7a6a;
+.wrow:hover { background: #1e1e1e; }
+.wrow.active { background: #1a2a22; }
+.wrow.active .td-id { color: #5a8; }
+
+.wt td {
+  padding: 5px 4px;
+  vertical-align: middle;
 }
 
-.workout-card.active {
-  border-color: #5a8;
-  background: #1a2a22;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 2px;
-}
-
-.workout-id {
+.td-id {
   font-weight: bold;
   color: #5a8;
-  font-size: 0.95rem;
+  white-space: nowrap;
+  width: 36px;
 }
 
-.workout-date {
-  color: #777;
+.td-date {
+  white-space: nowrap;
+  color: #888;
+  font-size: 0.75rem;
+  width: 72px;
+}
+
+.td-gap {
+  font-size: 0.65rem;
+  color: #444;
+  margin-top: 1px;
+}
+
+.td-mg {
+  font-size: 1rem;
+  white-space: nowrap;
+  width: 48px;
+}
+
+.td-ex {
+  color: #888;
+  white-space: nowrap;
+  text-align: center;
+  width: 36px;
+}
+
+.td-sets {
+  color: #555;
+  font-size: 0.72rem;
+}
+
+.td-time {
+  text-align: right;
+  white-space: nowrap;
+  width: 52px;
+}
+
+.time-badge {
+  color: #5a8;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.time-none {
+  color: #333;
   font-size: 0.75rem;
 }
 
-.card-muscles {
-  font-size: 0.82rem;
-  color: #bbb;
-  margin-bottom: 4px;
+.td-act {
+  text-align: right;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.card-since {
-  font-size: 0.72rem;
-  color: #555;
-  margin-bottom: 3px;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-exercises {
-  font-size: 0.78rem;
-  color: #666;
-}
-
-.card-actions {
-  display: flex;
-  gap: 4px;
+  width: 56px;
 }
 
 .btn {
