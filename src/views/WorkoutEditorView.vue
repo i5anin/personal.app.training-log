@@ -276,14 +276,16 @@ async function save() {
           @dragend="onDragEnd"
         >
           <div class="drag-handle" title="Перетащить">⠿</div>
-          <ExerciseEntryCard
-            :entry="entry"
-            :index="i"
-            :muscleGroups="workout.muscleGroups"
-            :supersetLabel="getSupersetLabel(entry)"
-            @update="updateEntry(i, $event)"
-            @remove="removeEntry(i)"
-          />
+          <div class="entry-card-flex">
+            <ExerciseEntryCard
+              :entry="entry"
+              :index="i"
+              :muscleGroups="workout.muscleGroups"
+              :supersetLabel="getSupersetLabel(entry)"
+              @update="updateEntry(i, $event)"
+              @remove="removeEntry(i)"
+            />
+          </div>
         </div>
       </div>
 
@@ -503,8 +505,7 @@ async function save() {
   color: #888;
 }
 
-.entry-drag-wrap > .entry-card,
-.entry-drag-wrap > * {
+.entry-card-flex {
   flex: 1;
   min-width: 0;
 }
