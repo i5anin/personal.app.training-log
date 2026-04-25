@@ -4,7 +4,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { deleteWorkout, exportAll, importAll } from '@/db'
-import { getMuscleGroupIcon } from '@/constants/muscleGroupIcons'
+import { getMuscleGroupIcon, getMuscleGroupImage } from '@/constants/muscleGroupIcons'
+import dayjs from 'dayjs'
+import 'dayjs/locale/ru'
+dayjs.locale('ru')
 
 const ENTRIES_GOAL = 245
 const route = useRoute()
@@ -30,30 +33,11 @@ const filtered = computed(() => {
 })
 
 function formatDate(iso: string) {
-  const d = new Date(iso)
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+  return dayjs(iso).format('dd DD.MM.YY')
 }
 
-// Разрыв между тренировками в днях
 function gapDays(isoA: string, isoB: string): number {
-  const a = new Date(isoA).setHours(0, 0, 0, 0)
-  const b = new Date(isoB).setHours(0, 0, 0, 0)
-  return Math.round(Math.abs(b - a) / 86400000)
-}
-
-function formatGap(days: number): string {
-  if (days === 0) return 'в тот же день'
-  if (days === 1) return 'через 1 день'
-  if (days < 5) return `через ${days} дня`
-  return `через ${days} дней`
-}
-
-function sinceToday(iso: string): string {
-  const days = gapDays(iso, new Date().toISOString().slice(0, 10))
-  if (days === 0) return 'сегодня'
-  if (days === 1) return '1 день назад'
-  if (days < 5) return `${days} дня назад`
-  return `${days} дней назад`
+  return Math.abs(dayjs(isoB).diff(dayjs(isoA), 'day'))
 }
 
 function mgLabels(ids: string[]) {
@@ -229,7 +213,12 @@ async function doImport() {
                 +{{ gapDays(filtered[i + 1]!.date, w.date) }}д
               </div>
             </td>
-            <td class="td-mg" :title="mgTooltip(w.muscleGroups)">{{ mgIcons(w.muscleGroups) }}</td>
+            <td class="td-mg" :title="mgTooltip(w.muscleGroups)">
+              <span v-for="id in w.muscleGroups" :key="id" class="mg-icon-wrap">
+                <img v-if="getMuscleGroupImage(id)" :src="getMuscleGroupImage(id)!" :alt="id" class="mg-icon-img" />
+                <span v-else>{{ getMuscleGroupIcon(id) }}</span>
+              </span>
+            </td>
             <td class="td-ex">
               {{ w.entries.length }}<span class="td-sets" v-if="w.entries.reduce((s,e)=>s+e.sets.length,0)"> / {{ w.entries.reduce((s,e)=>s+e.sets.length,0) }}</span>
             </td>
@@ -420,8 +409,8 @@ async function doImport() {
 .td-date {
   white-space: nowrap;
   color: #888;
-  font-size: 0.75rem;
-  width: 72px;
+  font-size: 0.74rem;
+  width: 82px;
 }
 
 .td-gap {
@@ -431,9 +420,21 @@ async function doImport() {
 }
 
 .td-mg {
-  font-size: 1rem;
   white-space: nowrap;
-  width: 48px;
+  width: 60px;
+}
+
+.mg-icon-wrap {
+  display: inline-block;
+  margin-right: 2px;
+}
+
+.mg-icon-img {
+  width: 22px;
+  height: 22px;
+  object-fit: cover;
+  border-radius: 4px;
+  vertical-align: middle;
 }
 
 .td-ex {

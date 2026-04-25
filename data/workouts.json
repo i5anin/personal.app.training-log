@@ -963,5 +963,288 @@
     "secondaryType": "",
     "createdAt": "2026-04-19T16:35:30.570Z",
     "totalEditMs": 380659
+  },
+  {
+    "id": 500,
+    "date": "2026-04-25",
+    "muscleGroups": [
+      "legs",
+      "chest",
+      "back",
+      "arms",
+      "shoulders",
+      "core",
+      "икры"
+    ],
+    "primaryType": "legs",
+    "secondaryType": "chest",
+    "description": "День А",
+    "createdAt": "2026-04-25T00:00:00.000Z",
+    "totalEditMs": 0,
+    "entries": [
+      {
+        "id": "qzkRILYSMkHdoP1HrNs4",
+        "exerciseId": "squat",
+        "description": "разминка+рабочий",
+        "createdAt": "2026-04-25T00:00:00.000Z",
+        "totalEditMs": 0,
+        "sets": [
+          {
+            "reps": 8,
+            "weight": 20
+          },
+          {
+            "reps": 7,
+            "weight": 30
+          },
+          {
+            "reps": 5,
+            "weight": 35
+          },
+          {
+            "reps": 5,
+            "weight": 40
+          },
+          {
+            "reps": 5,
+            "weight": 40
+          },
+          {
+            "reps": 5,
+            "weight": 45
+          },
+          {
+            "reps": 5,
+            "weight": 45
+          },
+          {
+            "reps": 5,
+            "weight": 45
+          }
+        ]
+      },
+      {
+        "id": "awDzzKUtwgXFzosUnRLE",
+        "exerciseId": "bench-press",
+        "description": "разминка+рабочий",
+        "createdAt": "2026-04-25T00:00:00.000Z",
+        "totalEditMs": 0,
+        "sets": [
+          {
+            "reps": 10,
+            "weight": 20
+          },
+          {
+            "reps": 5,
+            "weight": 30
+          },
+          {
+            "reps": 3,
+            "weight": 35
+          },
+          {
+            "reps": 5,
+            "weight": 40
+          },
+          {
+            "reps": 5,
+            "weight": 40
+          },
+          {
+            "reps": 5,
+            "weight": 40
+          },
+          {
+            "reps": 5,
+            "weight": 45
+          },
+          {
+            "reps": 5,
+            "weight": 55
+          }
+        ]
+      },
+      {
+        "id": "OFrEcyF4g3wpz13VnrXa",
+        "exerciseId": "barbell-row",
+        "description": "разминка+рабочий",
+        "createdAt": "2026-04-25T00:00:00.000Z",
+        "totalEditMs": 0,
+        "sets": [
+          {
+            "reps": 8,
+            "weight": 22
+          },
+          {
+            "reps": 5,
+            "weight": 27
+          },
+          {
+            "reps": 3,
+            "weight": 28.5
+          },
+          {
+            "reps": 5,
+            "weight": 40
+          },
+          {
+            "reps": 5,
+            "weight": 40
+          },
+          {
+            "reps": 5,
+            "weight": 40
+          },
+          {
+            "reps": 5,
+            "weight": 45
+          },
+          {
+            "reps": 5,
+            "weight": 45
+          }
+        ]
+      },
+      {
+        "id": "WeLOXvlYiKpJ6hwauJAJ",
+        "exerciseId": "shrugs",
+        "createdAt": "2026-04-25T00:00:00.000Z",
+        "totalEditMs": 0,
+        "sets": [
+          {
+            "reps": 8,
+            "weight": 20
+          },
+          {
+            "reps": 8,
+            "weight": 30
+          },
+          {
+            "reps": 8,
+            "weight": 40
+          }
+        ]
+      },
+      {
+        "id": "Fp4bHNkgLnsVrQ4yNhte",
+        "exerciseId": "overhead-tricep",
+        "description": "гриф 12",
+        "createdAt": "2026-04-25T00:00:00.000Z",
+        "totalEditMs": 0,
+        "sets": [
+          {
+            "reps": 8,
+            "weight": 22
+          },
+          {
+            "reps": 8,
+            "weight": 22
+          },
+          {
+            "reps": 8,
+            "weight": 22
+          }
+        ]
+      },
+      {
+        "id": "RSDBX3Kn3LPmBac5v9fD",
+        "exerciseId": "barbell-curl",
+        "description": "гриф 12",
+        "createdAt": "2026-04-25T00:00:00.000Z",
+        "totalEditMs": 0,
+        "sets": [
+          {
+            "reps": 8,
+            "weight": 22
+          },
+          {
+            "reps": 8,
+            "weight": 27
+          },
+          {
+            "reps": 8,
+            "weight": 29.75
+          }
+        ]
+      },
+      {
+        "id": "phCZxgM6qM5i0TY06Q_y",
+        "exerciseId": "hyperextension",
+        "createdAt": "2026-04-25T00:00:00.000Z",
+        "totalEditMs": 0,
+        "sets": [
+          {
+            "reps": 10,
+            "weight": 0
+          },
+          {
+            "reps": 10,
+            "weight": 0
+          }
+        ]
+      },
+      {
+        "id": "fCwBsMJZKLn5DldKkXeP",
+        "exerciseId": "crunch",
+        "description": "лежа левый-правый локоть",
+        "createdAt": "2026-04-25T00:00:00.000Z",
+        "totalEditMs": 0,
+        "sets": [
+          {
+            "reps": 10,
+            "weight": 0
+          },
+          {
+            "reps": 10,
+            "weight": 5
+          },
+          {
+            "reps": 10,
+            "weight": 5
+          }
+        ]
+      },
+      {
+        "id": "e_0iM0aj1edaVfkxzzGY",
+        "exerciseId": "lateral-raise",
+        "createdAt": "2026-04-25T00:00:00.000Z",
+        "totalEditMs": 0,
+        "sets": [
+          {
+            "reps": 12,
+            "weight": 4
+          },
+          {
+            "reps": 12,
+            "weight": 4
+          },
+          {
+            "reps": 12,
+            "weight": 4
+          }
+        ]
+      },
+      {
+        "id": "YeYyt-HrhfCOmkyOYX32",
+        "exerciseId": "calf-raise",
+        "description": "П1 свело чуть на 4 повтора",
+        "createdAt": "2026-04-25T00:00:00.000Z",
+        "totalEditMs": 0,
+        "sets": [
+          {
+            "reps": 12,
+            "weight": 20
+          },
+          {
+            "reps": 12,
+            "weight": 20
+          },
+          {
+            "reps": 12,
+            "weight": 20
+          }
+        ]
+      }
+    ]
   }
 ]

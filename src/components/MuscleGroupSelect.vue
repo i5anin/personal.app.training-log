@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useCatalogStore } from '@/stores/catalogStore'
-import { getMuscleGroupIcon } from '@/constants/muscleGroupIcons'
+import { getMuscleGroupIcon, getMuscleGroupImage } from '@/constants/muscleGroupIcons'
 
 const props = defineProps<{
   modelValue: string
@@ -12,20 +12,31 @@ const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const catalogStore = useCatalogStore()
 
-const ADD_ID = '__add__'
+const open = ref(false)
 const adding = ref(false)
 const newName = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
+const dropdownRef = ref<HTMLElement | null>(null)
 
-function onSelectChange(e: Event) {
-  const val = (e.target as HTMLSelectElement).value
-  if (val === ADD_ID) {
-    ;(e.target as HTMLSelectElement).value = props.modelValue // вернуть обратно
-    adding.value = true
-    setTimeout(() => inputRef.value?.focus(), 50)
-  } else {
-    emit('update:modelValue', val)
+function onDoc(e: MouseEvent) {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target as Node)) {
+    open.value = false
   }
+}
+onMounted(() => document.addEventListener('mousedown', onDoc))
+onUnmounted(() => document.removeEventListener('mousedown', onDoc))
+
+const selected = () => catalogStore.muscleGroups.find(mg => mg.id === props.modelValue)
+
+function select(id: string) {
+  emit('update:modelValue', id)
+  open.value = false
+}
+
+function startAdd() {
+  open.value = false
+  adding.value = true
+  setTimeout(() => inputRef.value?.focus(), 50)
 }
 
 async function confirm() {
@@ -49,16 +60,37 @@ function cancel() {
     <label class="mg-label">{{ label }}</label>
 
     <template v-if="!adding">
-      <select class="type-select" :value="modelValue" @change="onSelectChange">
-        <option value="">— не выбрано —</option>
-        <option
-          v-for="mg in catalogStore.muscleGroups"
-          :key="mg.id"
-          :value="mg.id"
-          :disabled="mg.id === disabledId"
-        >{{ getMuscleGroupIcon(mg.id) }} {{ mg.label }}</option>
-        <option :value="ADD_ID">＋ Добавить группу...</option>
-      </select>
+      <div class="dropdown" ref="dropdownRef">
+        <button class="dropdown-btn" @click="open = !open" type="button">
+          <template v-if="selected()">
+            <img v-if="getMuscleGroupImage(selected()!.id)" :src="getMuscleGroupImage(selected()!.id)!" class="opt-img" />
+            <span v-else class="opt-emoji">{{ getMuscleGroupIcon(selected()!.id) }}</span>
+            <span class="opt-label">{{ selected()!.label }}</span>
+          </template>
+          <span v-else class="placeholder">— не выбрано —</span>
+          <span class="arrow">{{ open ? '▲' : '▼' }}</span>
+        </button>
+
+        <div v-if="open" class="dropdown-list">
+          <div class="opt-item" @click="select('')">
+            <span class="opt-label muted">— не выбрано —</span>
+          </div>
+          <div
+            v-for="mg in catalogStore.muscleGroups"
+            :key="mg.id"
+            class="opt-item"
+            :class="{ selected: mg.id === modelValue, disabled: mg.id === disabledId }"
+            @click="mg.id !== disabledId && select(mg.id)"
+          >
+            <img v-if="getMuscleGroupImage(mg.id)" :src="getMuscleGroupImage(mg.id)!" class="opt-img" />
+            <span v-else class="opt-emoji">{{ getMuscleGroupIcon(mg.id) }}</span>
+            <span class="opt-label">{{ mg.label }}</span>
+          </div>
+          <div class="opt-item opt-add" @click="startAdd">
+            <span>＋ Добавить группу...</span>
+          </div>
+        </div>
+      </div>
     </template>
 
     <template v-else>
@@ -92,8 +124,15 @@ function cancel() {
   color: #666;
 }
 
-.type-select {
+.dropdown {
+  position: relative;
+}
+
+.dropdown-btn {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
   padding: 7px 10px;
   border: 1px solid #333;
   border-radius: 6px;
@@ -102,11 +141,87 @@ function cancel() {
   font-size: 0.9rem;
   font-family: inherit;
   cursor: pointer;
+  text-align: left;
 }
 
-.type-select:focus {
+.dropdown-btn:focus {
   outline: none;
   border-color: #5a8;
+}
+
+.arrow {
+  margin-left: auto;
+  font-size: 0.6rem;
+  color: #666;
+}
+
+.placeholder {
+  color: #555;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  z-index: 100;
+  max-height: 280px;
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.opt-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.opt-item:hover {
+  background: #2a2a2a;
+}
+
+.opt-item.selected {
+  background: #1a3a2a;
+}
+
+.opt-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.opt-item.opt-add {
+  color: #5a8;
+  border-top: 1px solid #222;
+  font-size: 0.85rem;
+}
+
+.opt-img {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.opt-emoji {
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.opt-label {
+  font-size: 0.9rem;
+}
+
+.muted {
+  color: #555;
 }
 
 .add-row {
@@ -126,12 +241,9 @@ function cancel() {
   font-family: inherit;
 }
 
-.add-input:focus {
-  outline: none;
-}
+.add-input:focus { outline: none; }
 
-.btn-confirm,
-.btn-cancel {
+.btn-confirm, .btn-cancel {
   padding: 6px 10px;
   border: none;
   border-radius: 6px;
@@ -140,21 +252,8 @@ function cancel() {
   flex-shrink: 0;
 }
 
-.btn-confirm {
-  background: #2a7a4a;
-  color: #fff;
-}
-
-.btn-confirm:hover {
-  background: #3a8a5a;
-}
-
-.btn-cancel {
-  background: #3a2a2a;
-  color: #aaa;
-}
-
-.btn-cancel:hover {
-  background: #5a3a3a;
-}
+.btn-confirm { background: #2a7a4a; color: #fff; }
+.btn-confirm:hover { background: #3a8a5a; }
+.btn-cancel { background: #3a2a2a; color: #aaa; }
+.btn-cancel:hover { background: #5a3a3a; }
 </style>

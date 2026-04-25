@@ -1,34 +1,21 @@
 [
-  {
-    "id": "chest",
-    "label": "Грудь"
-  },
-  {
-    "id": "back",
-    "label": "Спина"
-  },
-  {
-    "id": "shoulders",
-    "label": "Плечи"
-  },
-  {
-    "id": "arms",
-    "label": "Руки"
-  },
-  {
-    "id": "legs",
-    "label": "Ноги"
-  },
-  {
-    "id": "core",
-    "label": "Пресс"
-  },
-  {
-    "id": "cardio",
-    "label": "Кардио"
-  },
-  {
-    "id": "икры",
-    "label": "Икры"
-  }
+  { "id": "chest",      "label": "Грудь" },
+  { "id": "back",       "label": "Спина" },
+  { "id": "lats",       "label": "Широчайшие" },
+  { "id": "traps",      "label": "Трапеция" },
+  { "id": "lower-back", "label": "Поясница" },
+  { "id": "shoulders",  "label": "Плечи" },
+  { "id": "rear-delts", "label": "Задние дельты" },
+  { "id": "arms",       "label": "Руки" },
+  { "id": "biceps",     "label": "Бицепс" },
+  { "id": "triceps",    "label": "Трицепс" },
+  { "id": "forearms",   "label": "Предплечья" },
+  { "id": "legs",       "label": "Ноги" },
+  { "id": "quadriceps", "label": "Квадрицепс" },
+  { "id": "hamstrings", "label": "Бицепс бедра" },
+  { "id": "glutes",     "label": "Ягодицы" },
+  { "id": "икры",       "label": "Икры" },
+  { "id": "core",       "label": "Пресс" },
+  { "id": "obliques",   "label": "Косые" },
+  { "id": "cardio",     "label": "Кардио" }
 ]

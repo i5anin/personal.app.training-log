@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getMuscleGroupPhoto } from '@/constants/muscleGroupPhotos'
-import { getMuscleGroupIcon } from '@/constants/muscleGroupIcons'
+import { getMuscleGroupIcon, getMuscleGroupImage } from '@/constants/muscleGroupIcons'
 import { useCatalogStore } from '@/stores/catalogStore'
 
 const props = defineProps<{
@@ -34,7 +34,11 @@ const groups = computed<GroupInfo[]>(() => {
   <div class="mg-photos" v-if="groups.length">
     <div class="mg-row">
       <div class="mg-item" v-for="g in groups" :key="g.id">
-        <div class="mg-label">{{ getMuscleGroupIcon(g.id) }} {{ g.label }}</div>
+        <div class="mg-label">
+          <img v-if="getMuscleGroupImage(g.id)" :src="getMuscleGroupImage(g.id)!" :alt="g.label" class="mg-icon-img" />
+          <span v-else>{{ getMuscleGroupIcon(g.id) }}</span>
+          {{ g.label }}
+        </div>
         <img :src="g.photo" :alt="g.label" class="mg-photo" />
       </div>
     </div>
@@ -60,6 +64,17 @@ const groups = computed<GroupInfo[]>(() => {
   font-size: 0.75rem;
   color: #666;
   margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mg-icon-img {
+  width: 18px;
+  height: 18px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
 .mg-photo {
