@@ -1,10 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Index } from 'typeorm';
 
 @Entity()
 export class Workout {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column()
   date: string;
 

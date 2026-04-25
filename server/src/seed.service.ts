@@ -1,4 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { MuscleGroupsService } from './muscle-groups/muscle-groups.service';
 import { ExercisesService } from './exercises/exercises.service';
 
@@ -66,11 +68,14 @@ const DEFAULT_EXERCISES = [
 @Injectable()
 export class SeedService implements OnModuleInit {
   constructor(
+    @InjectDataSource() private readonly dataSource: DataSource,
     private readonly muscleGroupsService: MuscleGroupsService,
     private readonly exercisesService: ExercisesService,
   ) {}
 
   async onModuleInit() {
+    await this.migrateMuscleGroups();
+
     const groups = await this.muscleGroupsService.findAll();
     if (groups.length === 0) {
       for (const group of DEFAULT_MUSCLE_GROUPS) {
@@ -84,5 +89,24 @@ export class SeedService implements OnModuleInit {
         await this.exercisesService.upsert(exercise);
       }
     }
+  }
+
+  private async migrateMuscleGroups() {
+    const tempExists = await this.dataSource.query(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name='_mg_migration'`,
+    );
+    if (!tempExists.length) return;
+
+    const rows: { workoutId: number; muscleGroupId: string }[] =
+      await this.dataSource.query('SELECT workoutId, muscleGroupId FROM _mg_migration');
+
+    for (const row of rows) {
+      await this.dataSource.query(
+        `INSERT OR IGNORE INTO workout_muscle_group ("workoutId", "muscleGroupId") VALUES (?, ?)`,
+        [row.workoutId, row.muscleGroupId],
+      );
+    }
+
+    await this.dataSource.query('DROP TABLE _mg_migration');
   }
 }
