@@ -12,11 +12,25 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: SetRow]
   remove: []
+  'next-set': []
 }>()
 
 const workoutStore = useWorkoutStore()
 const weightSugg = computed(() => suggestWeight(props.exerciseId, workoutStore.workouts))
 const repsSugg  = computed(() => suggestReps(props.exerciseId, workoutStore.workouts))
+
+// 1RM по формуле Эпли: w × (1 + r/30), при r=1 → само значение
+const oneRM = computed(() => {
+  const w = props.modelValue.weight
+  const r = props.modelValue.reps
+  if (!w || !r) return null
+  if (r === 1) return w
+  return Math.round(w * (1 + r / 30))
+})
+
+// Refs for focus management
+const weightInputRef = ref<HTMLInputElement>()
+const repsInputRef   = ref<HTMLInputElement>()
 
 // Weight combobox
 const weightOpen  = ref(false)
@@ -33,6 +47,11 @@ function onWeightInput(e: Event) {
 }
 function onWeightBlur() { setTimeout(() => { weightOpen.value = false }, 150) }
 function pickWeight(w: number) { weightQuery.value = String(w); weightOpen.value = false; emit('update:modelValue', { ...props.modelValue, weight: w }) }
+function onWeightEnter() {
+  weightOpen.value = false
+  repsInputRef.value?.focus()
+  repsInputRef.value?.select()
+}
 
 // Reps combobox
 const repsOpen  = ref(false)
@@ -49,13 +68,25 @@ function onRepsInput(e: Event) {
 }
 function onRepsBlur() { setTimeout(() => { repsOpen.value = false }, 150) }
 function pickReps(r: number) { repsQuery.value = String(r); repsOpen.value = false; emit('update:modelValue', { ...props.modelValue, reps: r }) }
+function onRepsEnter() {
+  repsOpen.value = false
+  emit('next-set')
+}
 </script>
 
 <template>
-  <div class="set-cell" :class="{ burnout: modelValue.isBurnout }">
+  <div class="set-cell" :class="{ burnout: modelValue.isBurnout, warmup: modelValue.isWarmup }">
+    <!-- Разминка-тоггл -->
+    <button
+      class="warmup-btn"
+      :class="{ active: modelValue.isWarmup }"
+      title="Разминка"
+      @click="emit('update:modelValue', { ...modelValue, isWarmup: !modelValue.isWarmup })"
+    >Р</button>
     <!-- weight -->
     <div class="combo">
       <input
+        ref="weightInputRef"
         type="number"
         :value="modelValue.weight || ''"
         :placeholder="weightSugg.last ? String(weightSugg.last) : '0'"
@@ -63,6 +94,7 @@ function pickReps(r: number) { repsQuery.value = String(r); repsOpen.value = fal
         @input="onWeightInput"
         @focus="onWeightFocus"
         @blur="onWeightBlur"
+        @keydown.enter.prevent="onWeightEnter"
       />
       <div class="dropdown" v-if="weightOpen && filteredWeights.length">
         <button v-for="w in filteredWeights" :key="w" class="dd-item"
@@ -76,6 +108,7 @@ function pickReps(r: number) { repsQuery.value = String(r); repsOpen.value = fal
     <!-- reps -->
     <div class="combo">
       <input
+        ref="repsInputRef"
         type="number"
         :value="modelValue.reps || ''"
         placeholder="15"
@@ -83,6 +116,7 @@ function pickReps(r: number) { repsQuery.value = String(r); repsOpen.value = fal
         @input="onRepsInput"
         @focus="onRepsFocus"
         @blur="onRepsBlur"
+        @keydown.enter.prevent="onRepsEnter"
       />
       <div class="dropdown" v-if="repsOpen && filteredReps.length">
         <button v-for="r in filteredReps" :key="r" class="dd-item"
@@ -110,6 +144,27 @@ function pickReps(r: number) { repsQuery.value = String(r); repsOpen.value = fal
   background: #2a1e00;
 }
 
+.set-cell.warmup {
+  background: #0e1e2a;
+}
+
+.warmup-btn {
+  background: none;
+  border: 1px solid #2a3a4a;
+  border-radius: 3px;
+  color: #334455;
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: bold;
+  padding: 0 3px;
+  line-height: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: color 0.1s, border-color 0.1s, background 0.1s;
+}
+.warmup-btn:hover { border-color: #4a8ab8; color: #4a8ab8; }
+.warmup-btn.active { border-color: #4a8ab8; background: #1a3a5a; color: #6ab4e8; }
+
 .combo {
   position: relative;
 }
@@ -136,6 +191,14 @@ function pickReps(r: number) { repsQuery.value = String(r); repsOpen.value = fal
   color: #c8a;
   font-size: 0.65rem;
   white-space: nowrap;
+}
+
+.orm-badge {
+  color: #888;
+  font-size: 0.62rem;
+  white-space: nowrap;
+  cursor: default;
+  padding: 0 1px;
 }
 
 .rm {

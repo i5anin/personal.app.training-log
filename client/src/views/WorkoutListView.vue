@@ -9,7 +9,6 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
 dayjs.locale('ru')
 
-const ENTRIES_GOAL = 245
 const route = useRoute()
 const router = useRouter()
 const workoutStore = useWorkoutStore()
@@ -22,10 +21,10 @@ const filtered = computed(() => {
   const q = search.value.toLowerCase()
   if (!q) return workoutStore.workouts
   return workoutStore.workouts.filter((w) => {
-    const mgLabels = w.muscleGroups
+    const mgLabels = (w.muscleGroups || [])
       .map((id) => catalogStore.muscleGroups.find((mg) => mg.id === id)?.label || '')
       .join(' ')
-    const exNames = w.entries
+    const exNames = (w.entries || [])
       .map((e) => catalogStore.getExerciseById(e.exerciseId)?.name || '')
       .join(' ')
     return `${w.date} ${mgLabels} ${exNames} #${w.id}`.toLowerCase().includes(q)
@@ -41,18 +40,18 @@ function gapDays(isoA: string, isoB: string): number {
 }
 
 function mgLabels(ids: string[]) {
-  return ids.map((id) => {
+  return (ids || []).map((id) => {
     const label = catalogStore.muscleGroups.find((mg) => mg.id === id)?.label || id
     return `${getMuscleGroupIcon(id)} ${label}`
   }).join('  ')
 }
 
 function mgIcons(ids: string[]) {
-  return ids.map((id) => getMuscleGroupIcon(id)).join(' ')
+  return (ids || []).map((id) => getMuscleGroupIcon(id)).join(' ')
 }
 
 function mgTooltip(ids: string[]) {
-  return ids.map((id) => catalogStore.muscleGroups.find((mg) => mg.id === id)?.label || id).join(', ')
+  return (ids || []).map((id) => catalogStore.muscleGroups.find((mg) => mg.id === id)?.label || id).join(', ')
 }
 
 async function duplicate(workoutId: number) {
@@ -77,36 +76,6 @@ async function doExport() {
   URL.revokeObjectURL(url)
 }
 
-// --- Progress stats ---
-const totalEntries = computed(() => workoutStore.workouts.length)
-
-const workoutRange = computed(() => {
-  if (!workoutStore.workouts.length) return ''
-  const ids = workoutStore.workouts.map((w) => w.id)
-  const mn = Math.min(...ids)
-  const mx = Math.max(...ids)
-  return mn === mx ? `#${mn}` : `#${mn}–#${mx}`
-})
-
-const avgEditMs = computed((): number | null => {
-  const times = workoutStore.workouts
-    .map((w) => w.totalEditMs)
-    .filter((ms): ms is number => typeof ms === 'number' && ms > 500)
-  if (!times.length) return null
-  const sorted = [...times].sort((a, b) => a - b)
-  const median = sorted[Math.floor(sorted.length / 2)] ?? Infinity
-  const clean = times.filter((ms) => ms <= median * 3)
-  if (!clean.length) return null
-  return clean.reduce((s, ms) => s + ms, 0) / clean.length
-})
-
-const remaining = computed(() => Math.max(0, ENTRIES_GOAL - totalEntries.value))
-
-const etaMs = computed((): number | null => {
-  if (!avgEditMs.value) return null
-  return remaining.value * avgEditMs.value
-})
-
 function fmtDuration(ms: number): string {
   const s = Math.round(ms / 1000)
   if (s < 60) return `${s}с`
@@ -116,8 +85,6 @@ function fmtDuration(ms: number): string {
   const rm = m % 60
   return rm > 0 ? `${h}ч ${rm}м` : `${h}ч`
 }
-
-const progressPct = computed(() => Math.min(100, (totalEntries.value / ENTRIES_GOAL) * 100))
 
 async function doImport() {
   const input = document.createElement('input')
@@ -151,39 +118,6 @@ async function doImport() {
       <button class="btn btn-sm" @click="doImport">📥</button>
     </div>
 
-    <!-- Панель прогресса записей -->
-    <div class="progress-panel">
-      <div class="progress-header">
-        <span class="progress-label">Записи</span>
-        <span class="progress-fraction">{{ totalEntries }} / {{ ENTRIES_GOAL }}</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" :style="{ width: progressPct + '%' }" />
-      </div>
-      <div class="progress-cells">
-        <div class="pcell">
-          <span class="pcell-val">{{ totalEntries }}</span>
-          <span class="pcell-lbl">добавлено</span>
-        </div>
-        <div class="pcell" v-if="workoutRange">
-          <span class="pcell-val">тр. {{ workoutRange }}</span>
-          <span class="pcell-lbl">тренировки</span>
-        </div>
-        <div class="pcell">
-          <span class="pcell-val">{{ remaining }}</span>
-          <span class="pcell-lbl">осталось</span>
-        </div>
-        <div class="pcell">
-          <span class="pcell-val">{{ avgEditMs ? '~' + fmtDuration(avgEditMs) : '—' }}</span>
-          <span class="pcell-lbl">сред./тр.</span>
-        </div>
-        <div class="pcell pcell-eta">
-          <span class="pcell-val">{{ etaMs ? '~' + fmtDuration(etaMs) : '—' }}</span>
-          <span class="pcell-lbl">ETA</span>
-        </div>
-      </div>
-    </div>
-
     <div v-if="filtered.length === 0" class="empty">Нет тренировок</div>
 
     <div class="table-wrap" v-else>
@@ -214,13 +148,13 @@ async function doImport() {
               </div>
             </td>
             <td class="td-mg" :title="mgTooltip(w.muscleGroups)">
-              <span v-for="id in w.muscleGroups" :key="id" class="mg-icon-wrap">
+              <span v-for="id in (w.muscleGroups || [])" :key="id" class="mg-icon-wrap">
                 <img v-if="getMuscleGroupImage(id)" :src="getMuscleGroupImage(id)!" :alt="id" class="mg-icon-img" />
                 <span v-else>{{ getMuscleGroupIcon(id) }}</span>
               </span>
             </td>
             <td class="td-ex">
-              {{ w.entries.length }}<span class="td-sets" v-if="w.entries.reduce((s,e)=>s+e.sets.length,0)"> / {{ w.entries.reduce((s,e)=>s+e.sets.length,0) }}</span>
+              {{ (w.entries || []).length }}<span class="td-sets" v-if="(w.entries || []).reduce((s,e)=>s+(e.sets||[]).length,0)"> / {{ (w.entries || []).reduce((s,e)=>s+(e.sets||[]).length,0) }}</span>
             </td>
             <td class="td-time">
               <span v-if="w.totalEditMs && w.totalEditMs > 0" class="time-badge">{{ fmtDuration(w.totalEditMs) }}</span>
@@ -271,84 +205,6 @@ async function doImport() {
 
 .btn-new {
   flex: 1;
-}
-
-.progress-panel {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  padding: 8px 10px;
-  margin-bottom: 10px;
-  flex-shrink: 0;
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 5px;
-}
-
-.progress-label {
-  font-size: 0.72rem;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.progress-fraction {
-  font-size: 0.8rem;
-  color: #5a8;
-  font-weight: bold;
-}
-
-.progress-track {
-  height: 4px;
-  background: #2a2a2a;
-  border-radius: 2px;
-  overflow: hidden;
-  margin-bottom: 7px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #5a8;
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-
-.progress-cells {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.pcell {
-  background: #111;
-  border: 1px solid #2a2a2a;
-  border-radius: 5px;
-  padding: 3px 7px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 44px;
-}
-
-.pcell-eta .pcell-val {
-  color: #5a8;
-}
-
-.pcell-val {
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: #ccc;
-  line-height: 1.2;
-}
-
-.pcell-lbl {
-  font-size: 0.62rem;
-  color: #555;
-  line-height: 1.2;
 }
 
 .empty {

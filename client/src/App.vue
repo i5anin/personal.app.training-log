@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import WorkoutListView from '@/views/WorkoutListView.vue'
+import StatsView from '@/views/StatsView.vue'
 
 const catalogStore = useCatalogStore()
 const workoutStore = useWorkoutStore()
+const activePanel = ref<'workouts' | 'stats'>('workouts')
 
 onMounted(async () => {
   await catalogStore.load()
@@ -19,9 +21,14 @@ onMounted(async () => {
     <aside class="panel-list">
       <div class="panel-list-header">
         <span class="logo">💪 Gym+</span>
+        <div class="panel-tabs">
+          <button class="ptab" :class="{ active: activePanel === 'workouts' }" @click="activePanel = 'workouts'" title="Тренировки">📋</button>
+          <button class="ptab" :class="{ active: activePanel === 'stats' }" @click="activePanel = 'stats'" title="Прогресс">📊</button>
+        </div>
       </div>
       <div class="panel-list-body">
-        <WorkoutListView />
+        <WorkoutListView v-if="activePanel === 'workouts'" />
+        <StatsView v-else />
       </div>
     </aside>
 
@@ -76,14 +83,40 @@ html, body {
 
 .panel-list-header {
   flex-shrink: 0;
-  padding: 12px 14px 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .logo {
   font-size: 1.1rem;
   font-weight: bold;
 }
+
+.panel-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.ptab {
+  width: 32px;
+  height: 28px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #555;
+  cursor: pointer;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ptab:hover { border-color: #5a8; color: #ccc; }
+.ptab.active { border-color: #5a8; background: #1a2a22; color: #5a8; }
 
 .panel-list-body {
   flex: 1;

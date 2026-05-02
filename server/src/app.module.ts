@@ -39,17 +39,24 @@ import { DataController } from './data.controller';
               supersetGroupId TEXT, photoIds TEXT, createdAt TEXT, totalEditMs INTEGER
             )
           `).run();
-          const workouts = db.prepare('SELECT id, entries FROM workout').all() as any[];
-          const insEntry = db.prepare(`
-            INSERT OR IGNORE INTO exercise_entry
-              (id, workoutId, exerciseId, sets, barWeight, description, supersetGroupId, photoIds, createdAt, totalEditMs)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `);
-          for (const w of workouts) {
-            for (const e of JSON.parse(w.entries || '[]') as any[]) {
-              insEntry.run(e.id, w.id, e.exerciseId, JSON.stringify(e.sets ?? []),
-                e.barWeight ?? null, e.description ?? null, e.supersetGroupId ?? null,
-                e.photoIds ? JSON.stringify(e.photoIds) : null, e.createdAt ?? null, e.totalEditMs ?? null);
+          // Only insert if exercise_entry still has the sets column
+          // (table may already be migrated to set_row on a prior run)
+          const eeHasSets = (db.pragma('table_info(exercise_entry)') as any[]).some(
+            (c) => c.name === 'sets',
+          );
+          if (eeHasSets) {
+            const workouts = db.prepare('SELECT id, entries FROM workout').all() as any[];
+            const insEntry = db.prepare(`
+              INSERT OR IGNORE INTO exercise_entry
+                (id, workoutId, exerciseId, sets, barWeight, description, supersetGroupId, photoIds, createdAt, totalEditMs)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+            for (const w of workouts) {
+              for (const e of JSON.parse(w.entries || '[]') as any[]) {
+                insEntry.run(e.id, w.id, e.exerciseId, JSON.stringify(e.sets ?? []),
+                  e.barWeight ?? null, e.description ?? null, e.supersetGroupId ?? null,
+                  e.photoIds ? JSON.stringify(e.photoIds) : null, e.createdAt ?? null, e.totalEditMs ?? null);
+              }
             }
           }
         }

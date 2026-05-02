@@ -13,6 +13,7 @@ export interface SetRow {
   reps: number
   weight: number
   isBurnout?: boolean
+  isWarmup?: boolean
 }
 
 export interface ExerciseEntry {

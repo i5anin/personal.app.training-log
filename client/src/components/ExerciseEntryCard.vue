@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { nanoid } from 'nanoid'
 import type { ExerciseEntry, SetRow } from '@/types'
 import ExerciseSelector from './ExerciseSelector.vue'
 import SetCell from './SetCell.vue'
 import PhotoAttach from './PhotoAttach.vue'
+import { useWorkoutStore } from '@/stores/workoutStore'
 
 const props = defineProps<{
   entry: ExerciseEntry
@@ -16,6 +17,56 @@ const emit = defineEmits<{
   update: [entry: ExerciseEntry]
   remove: []
 }>()
+
+const workoutStore = useWorkoutStore()
+
+// Авто-заполнение из последней тренировки при выборе упражнения
+watch(() => props.entry.exerciseId, (newId) => {
+  if (!newId) return
+  const allEmpty = props.entry.sets.every(s => !s.weight && !s.reps)
+  if (!allEmpty) return // уже заполнено — не перезаписываем
+  for (const w of workoutStore.workouts) {
+    const found = w.entries?.find((e: ExerciseEntry) => e.exerciseId === newId)
+    if (found?.sets?.length) {
+      emit('update', { ...props.entry, sets: found.sets.map((s: SetRow) => ({ ...s })) })
+      return
+    }
+  }
+})
+
+// Для фокуса на последнем добавленном set
+const setCellRefs = ref<Record<number, { focusWeight?: () => void }>>({})
+function registerSetCell(idx: number, el: any) {
+  if (el) setCellRefs.value[idx] = el
+}
+
+// Enter в последнем set → добавляем новый подход с теми же значениями
+function onNextSet(colIdx: number) {
+  const col = setColumns.value[colIdx]
+  if (!col) return
+  const newSet: SetRow = { reps: col.main.reps, weight: col.main.weight }
+  const newSets = [...props.entry.sets, newSet]
+  emit('update', { ...props.entry, sets: newSets })
+  // Фокус на новый подход после рендера
+  nextTick(() => {
+    const lastIdx = newSets.length - 1
+    const cellEl = document.querySelector<HTMLInputElement>(
+      `.entry-card [data-set-idx="${lastIdx}"] input[type=number]`
+    )
+    cellEl?.focus(); cellEl?.select()
+  })
+}
+
+// Максимальный 1RM по формуле Эпли — только рабочие подходы (не разминка, не добивка)
+const maxOneRM = computed(() => {
+  let best = 0
+  for (const s of props.entry.sets) {
+    if (s.isWarmup || s.isBurnout || !s.weight || !s.reps) continue
+    const orm = s.reps === 1 ? s.weight : s.weight * (1 + s.reps / 30)
+    if (orm > best) best = orm
+  }
+  return best > 0 ? Math.round(best) : null
+})
 
 // Группируем подходы: каждый столбец = основной сет + N добивок после него
 interface BurnoutEntry { set: SetRow; idx: number }
@@ -155,7 +206,10 @@ function createdAtLabel(iso?: string): string {
       <table class="sets-table">
         <thead>
           <tr>
-            <th v-for="(col, ci) in setColumns" :key="ci" class="th-num">{{ ci + 1 }}</th>
+            <th v-for="(col, ci) in setColumns" :key="ci"
+              class="th-num" :class="{ 'th-warmup': col.main.isWarmup }">
+              {{ col.main.isWarmup ? 'Р' : ci + 1 - setColumns.slice(0, ci).filter(c => c.main.isWarmup).length }}
+            </th>
             <th class="th-add">
               <button class="add-col-btn" @click="addSet" title="+ подход">+</button>
             </th>
@@ -164,13 +218,14 @@ function createdAtLabel(iso?: string): string {
         <tbody>
           <!-- Основные подходы -->
           <tr class="main-row">
-            <td v-for="(col, ci) in setColumns" :key="ci" class="td-main">
+            <td v-for="(col, ci) in setColumns" :key="ci" class="td-main" :data-set-idx="col.mainIdx">
               <SetCell
                 :modelValue="col.main"
                 :exerciseId="entry.exerciseId"
                 :barWeight="entry.barWeight ?? 0"
                 @update:modelValue="updateSet(col.mainIdx, $event)"
                 @remove="removeSet(col.mainIdx)"
+                @next-set="onNextSet(ci)"
               />
             </td>
             <td></td>
@@ -263,6 +318,17 @@ function createdAtLabel(iso?: string): string {
   white-space: nowrap;
 }
 
+.orm-head {
+  font-size: 0.68rem;
+  color: #888;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: default;
+  padding: 1px 4px;
+  border: 1px solid #333;
+  border-radius: 3px;
+}
+
 .entry-time {
   font-size: 0.7rem;
   color: #5a8;
@@ -316,6 +382,9 @@ function createdAtLabel(iso?: string): string {
   text-align: center;
   padding: 1px 4px 3px;
   min-width: 0;
+}
+.th-warmup {
+  color: #4a8ab8;
 }
 
 .th-add { width: 24px; padding: 0 2px; }

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { suggestExercises } from '@/suggestions'
+
+const router = useRouter()
 
 const props = defineProps<{
   modelValue: string
@@ -62,6 +65,12 @@ function addCustom() {
 
 <template>
   <div class="exercise-selector">
+    <button
+      v-if="props.modelValue"
+      class="chart-btn"
+      title="График прогресса"
+      @click.stop="router.push({ name: 'exercise-chart', params: { id: props.modelValue } })"
+    >📈</button>
     <input
       ref="inputEl"
       :value="isOpen ? query : selectedName"
@@ -96,10 +105,26 @@ function addCustom() {
 <style scoped>
 .exercise-selector {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
+.chart-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 2px;
+  opacity: 0.5;
+  line-height: 1;
+}
+.chart-btn:hover { opacity: 1; }
+
 .ex-input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 6px 10px;
   border: 1px solid #444;
   border-radius: 6px;

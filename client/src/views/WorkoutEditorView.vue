@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { nanoid } from 'nanoid'
 import type { Workout, ExerciseEntry, SetRow } from '@/types'
@@ -207,6 +207,27 @@ async function save() {
     saving.value = false
   }
 }
+
+// Ctrl+S
+function onKeydown(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    save()
+  }
+}
+
+// Авто-сохранение каждые 30 сек, если есть несохранённые упражнения
+let autoSaveTimer: ReturnType<typeof setInterval>
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  autoSaveTimer = setInterval(() => {
+    if (!loading.value && workout.value.entries.length > 0) save()
+  }, 30_000)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  clearInterval(autoSaveTimer)
+})
 </script>
 
 <template>
