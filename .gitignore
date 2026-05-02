@@ -1,0 +1,6 @@
+node_modules/
+dist/
+
+# SQLite WAL auxiliary files (temporary, not needed in repo)
+*.db-shm
+*.db-wal
