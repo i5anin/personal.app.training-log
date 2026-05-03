@@ -24,4 +24,9 @@ export class ExercisesService {
     await this.repo.save(exercises);
     return { ok: true };
   }
+
+  async remove(id: string) {
+    await this.repo.delete(id);
+    return { ok: true };
+  }
 }

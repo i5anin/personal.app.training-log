@@ -50,6 +50,10 @@ export async function saveExercise(exercise: Exercise): Promise<void> {
   await post('/exercises', exercise)
 }
 
+export async function deleteExercise(id: string): Promise<void> {
+  await json(`/exercises/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
 // Muscle Groups
 export async function getAllMuscleGroups(): Promise<MuscleGroup[]> {
   return json('/muscle-groups')
@@ -57,6 +61,10 @@ export async function getAllMuscleGroups(): Promise<MuscleGroup[]> {
 
 export async function saveMuscleGroup(group: MuscleGroup): Promise<void> {
   await post('/muscle-groups', group)
+}
+
+export async function deleteMuscleGroup(id: string): Promise<void> {
+  await json(`/muscle-groups/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
 // Photos

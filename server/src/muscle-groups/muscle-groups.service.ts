@@ -24,4 +24,9 @@ export class MuscleGroupsService {
     await this.repo.save(groups);
     return { ok: true };
   }
+
+  async remove(id: string) {
+    await this.repo.delete(id);
+    return { ok: true };
+  }
 }

@@ -161,8 +161,8 @@ async function doImport() {
               <span v-else class="time-none">—</span>
             </td>
             <td class="td-act" @click.stop>
-              <button class="btn btn-xs" title="Дублировать" @click="duplicate(w.id)">📋</button>
-              <button class="btn btn-xs btn-danger" title="Удалить" @click="remove(w.id)">✕</button>
+              <button class="act-btn act-dup" title="Дублировать" @click="duplicate(w.id)">⎘</button>
+              <button class="act-btn act-del" title="Удалить" @click="remove(w.id)">✕</button>
             </td>
           </tr>
         </tbody>
@@ -367,4 +367,20 @@ async function doImport() {
   background: #7a2222;
   border-color: #7a2222;
 }
+
+/* Action icons in table */
+.act-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 3px 5px;
+  line-height: 1;
+  color: #555;
+  border-radius: 4px;
+  transition: color 0.1s, background 0.1s;
+}
+.act-btn:hover { background: #2a2a2a; }
+.act-dup:hover { color: #5a8; }
+.act-del:hover { color: #d55; }
 </style>

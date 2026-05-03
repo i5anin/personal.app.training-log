@@ -5,6 +5,7 @@ import { useWorkoutStore } from '@/stores/workoutStore'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { getMuscleGroupIcon } from '@/constants/muscleGroupIcons'
 import SparkCell from '@/components/SparkCell.vue'
+import MgIcon from '@/components/MgIcon.vue'
 
 const ENTRIES_GOAL = 245
 const router = useRouter()
@@ -175,7 +176,7 @@ const metric = ref<'1rm' | 'vol'>('1rm')
           class="mgf" :class="{ active: filterMg === mg }"
           @click="filterMg = filterMg === mg ? 'all' : mg"
           :title="catalogStore.muscleGroups.find(m => m.id === mg)?.label ?? mg"
-        >{{ getMuscleGroupIcon(mg) }}</button>
+        ><MgIcon :id="mg" :size="16" /></button>
       </div>
     </div>
 
@@ -195,7 +196,9 @@ const metric = ref<'1rm' | 'vol'>('1rm')
           <div class="ex-meta">
             <span class="ex-1rm">{{ metric === '1rm' ? s.best1RM + ' кг' : Math.round(s.ptsVol.reduce((a,b)=>Math.max(a,b),0)) + ' кг' }}</span>
             <span class="ex-cnt">{{ s.count }} тр.</span>
-            <span class="ex-mgs">{{ s.muscleGroups.map(m => getMuscleGroupIcon(m)).join('') }}</span>
+            <span class="ex-mgs">
+              <MgIcon v-for="m in s.muscleGroups" :key="m" :id="m" :size="14" />
+            </span>
           </div>
         </div>
 

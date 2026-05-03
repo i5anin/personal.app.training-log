@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
 import { MuscleGroupsService } from './muscle-groups.service';
 
 @Controller('muscle-groups')
@@ -13,5 +13,10 @@ export class MuscleGroupsController {
   @Post()
   upsert(@Body() body: any) {
     return this.service.upsert(body);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.service.remove(id);
   }
 }
