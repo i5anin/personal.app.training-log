@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import type { SetRow } from '@/types'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { suggestReps, suggestWeight } from '@/suggestions'
+import { CornerDownRight, X } from 'lucide-vue-next'
 
 const props = defineProps<{
   modelValue: SetRow
@@ -86,7 +87,7 @@ function pickReps(r: number) {
 
 <template>
   <div class="set-wrapper" :class="{ burnout: modelValue.isBurnout }">
-    <div v-if="modelValue.isBurnout" class="burnout-marker">↳</div>
+    <div v-if="modelValue.isBurnout" class="burnout-marker"><CornerDownRight class="size-3" /></div>
 
     <span class="set-num">{{ index + 1 }}</span>
 
@@ -137,7 +138,7 @@ function pickReps(r: number) {
       </div>
     </div>
 
-    <button class="remove-btn" @click="emit('remove')">✕</button>
+    <button class="remove-btn" @click="emit('remove')"><X class="size-3" /></button>
   </div>
 </template>
 

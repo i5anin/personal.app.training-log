@@ -6,6 +6,8 @@ import ExerciseSelector from './ExerciseSelector.vue'
 import SetCell from './SetCell.vue'
 import PhotoAttach from './PhotoAttach.vue'
 import { useWorkoutStore } from '@/stores/workoutStore'
+import { Trash2, Clock, CornerDownRight, Plus } from 'lucide-vue-next'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 
 const props = defineProps<{
   entry: ExerciseEntry
@@ -131,6 +133,30 @@ function addBurnout() {
   emit('update', { ...props.entry, sets })
 }
 
+function toggleWarmupCol(colIdx: number) {
+  const col = setColumns.value[colIdx]
+  if (!col) return
+  const sets = [...props.entry.sets]
+  const willBeWarmup = !sets[col.mainIdx].isWarmup
+
+  // Индексы колонки (основной + добивки), по возрастанию
+  const indices = [col.mainIdx, ...col.burnouts.map((b) => b.idx)].sort((a, b) => a - b)
+
+  // Вырезаем колонку, помечая isWarmup
+  const extracted = indices.map((i) => ({ ...sets[i], isWarmup: willBeWarmup }))
+  for (let i = indices.length - 1; i >= 0; i--) sets.splice(indices[i], 1)
+
+  // Вставляем сразу после последней разминки —
+  // делает колонку либо последней разминкой, либо первой рабочей
+  let insertAt = 0
+  for (let i = 0; i < sets.length; i++) {
+    if (sets[i].isWarmup) insertAt = i + 1
+  }
+  sets.splice(insertAt, 0, ...extracted)
+
+  emit('update', { ...props.entry, sets })
+}
+
 function addBurnoutToCol(colIdx: number) {
   const col = setColumns.value[colIdx]
   if (!col) return
@@ -185,50 +211,83 @@ function createdAtLabel(iso?: string): string {
         />
       </div>
       <span v-if="supersetLabel" class="superset-badge">{{ supersetLabel }}</span>
-      <span
-        v-if="entry.totalEditMs != null && entry.totalEditMs > 0"
-        class="entry-time"
-        :title="entry.createdAt ? 'Создано: ' + createdAtLabel(entry.createdAt) : ''"
-      >⏱ {{ formatMs(entry.totalEditMs) }}</span>
-      <button class="remove-entry" @click="emit('remove')">🗑</button>
-    </div>
 
-    <!-- Вес штанги -->
-    <div class="bar-row">
-      <span class="bar-label">Штанга:</span>
-      <button v-for="w in [12, 20]" :key="w" class="bar-btn"
-        :class="{ active: entry.barWeight === w }" @click="setBarWeight(w)">{{ w }} кг</button>
-      <span v-if="entry.barWeight" class="bar-hint">+ {{ entry.barWeight }} кг</span>
+      <!-- Заметка -->
+      <input
+        :value="entry.description || ''"
+        @input="updateDescription(($event.target as HTMLInputElement).value)"
+        placeholder="Заметка..."
+        class="note-input"
+      />
+
+      <!-- Фото -->
+      <PhotoAttach :photoIds="entry.photoIds || []" @update="updatePhotos" />
+
+      <!-- Вес штанги -->
+      <div class="bar-row">
+        <span class="bar-label">Штанга:</span>
+        <button v-for="w in [12, 20]" :key="w" class="bar-btn"
+          :class="{ active: entry.barWeight === w }" @click="setBarWeight(w)">{{ w }}</button>
+      </div>
+
+      <Tooltip v-if="entry.totalEditMs != null && entry.totalEditMs > 0">
+        <TooltipTrigger as-child>
+          <span class="entry-time">
+            <Clock class="size-3" />{{ formatMs(entry.totalEditMs) }}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          {{ entry.createdAt ? 'Создано: ' + createdAtLabel(entry.createdAt) : 'Время редактирования' }}
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button class="remove-entry" @click="emit('remove')"><Trash2 class="size-4" /></button>
+        </TooltipTrigger>
+        <TooltipContent>Удалить упражнение</TooltipContent>
+      </Tooltip>
     </div>
 
     <!-- Таблица подходов -->
     <div class="sets-wrap">
       <table class="sets-table">
-        <thead>
-          <tr>
-            <th v-for="(col, ci) in setColumns" :key="ci"
-              class="th-num" :class="{ 'th-warmup': col.main.isWarmup }">
-              {{ col.main.isWarmup ? 'Р' : ci + 1 - setColumns.slice(0, ci).filter(c => c.main.isWarmup).length }}
-            </th>
-            <th class="th-add">
-              <button class="add-col-btn" @click="addSet" title="+ подход">+</button>
-            </th>
-          </tr>
-        </thead>
         <tbody>
-          <!-- Основные подходы -->
+          <!-- Основные подходы: метка «Р/N» слева внутри ячейки -->
           <tr class="main-row">
             <td v-for="(col, ci) in setColumns" :key="ci" class="td-main" :data-set-idx="col.mainIdx">
-              <SetCell
-                :modelValue="col.main"
-                :exerciseId="entry.exerciseId"
-                :barWeight="entry.barWeight ?? 0"
-                @update:modelValue="updateSet(col.mainIdx, $event)"
-                @remove="removeSet(col.mainIdx)"
-                @next-set="onNextSet(ci)"
-              />
+              <div class="cell-with-label">
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <button
+                      class="col-toggle"
+                      :class="{ 'is-warmup': col.main.isWarmup }"
+                      @click="toggleWarmupCol(ci)"
+                    >
+                      {{ col.main.isWarmup ? 'Р' : ci + 1 - setColumns.slice(0, ci).filter(c => c.main.isWarmup).length }}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {{ col.main.isWarmup ? 'Сделать рабочим' : 'Сделать разминкой' }}
+                  </TooltipContent>
+                </Tooltip>
+                <SetCell
+                  :modelValue="col.main"
+                  :exerciseId="entry.exerciseId"
+                  :barWeight="entry.barWeight ?? 0"
+                  @update:modelValue="updateSet(col.mainIdx, $event)"
+                  @remove="removeSet(col.mainIdx)"
+                  @next-set="onNextSet(ci)"
+                />
+              </div>
             </td>
-            <td></td>
+            <td class="td-add-col">
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <button class="add-col-btn" @click="addSet"><Plus class="size-4" /></button>
+                </TooltipTrigger>
+                <TooltipContent>Добавить подход</TooltipContent>
+              </Tooltip>
+            </td>
           </tr>
 
           <!-- Строки добивок -->
@@ -248,7 +307,7 @@ function createdAtLabel(iso?: string): string {
               <button
                 v-else-if="ri - 1 === col.burnouts.length"
                 class="add-burnout-here td-hint"
-                @click="addBurnoutToCol(ci)">↳</button>
+                @click="addBurnoutToCol(ci)"><CornerDownRight class="size-3" /></button>
             </td>
             <td></td>
           </tr>
@@ -258,27 +317,12 @@ function createdAtLabel(iso?: string): string {
               <button
                 v-if="col.burnouts.length === maxBurnouts"
                 class="add-burnout-here"
-                @click="addBurnoutToCol(ci)">↳</button>
+                @click="addBurnoutToCol(ci)"><CornerDownRight class="size-3" /></button>
             </td>
             <td></td>
           </tr>
         </tbody>
       </table>
-
-      <div class="table-actions">
-        <button class="btn btn-add" @click="addSet">+ подход</button>
-      </div>
-    </div>
-
-    <!-- Заметка + фото -->
-    <div class="extras">
-      <input
-        :value="entry.description || ''"
-        @input="updateDescription(($event.target as HTMLInputElement).value)"
-        placeholder="Заметка..."
-        class="note-input"
-      />
-      <PhotoAttach :photoIds="entry.photoIds || []" @update="updatePhotos" />
     </div>
   </div>
 </template>
@@ -297,8 +341,8 @@ function createdAtLabel(iso?: string): string {
 .entry-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 5px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .entry-num {
@@ -309,7 +353,7 @@ function createdAtLabel(iso?: string): string {
   min-width: 18px;
 }
 
-.ex-selector-wrap { flex: 1; }
+.ex-selector-wrap { flex: 2; min-width: 200px; }
 
 .superset-badge {
   font-size: 0.7rem;
@@ -330,42 +374,55 @@ function createdAtLabel(iso?: string): string {
 }
 
 .entry-time {
-  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
   color: #5a8;
   white-space: nowrap;
   flex-shrink: 0;
   cursor: default;
+  padding: 2px 6px;
+  border: 1px solid #1f3a2a;
+  border-radius: 4px;
+  background: #0f1a14;
 }
 
 .remove-entry {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
   padding: 4px;
+  color: #555;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.1s, background 0.1s;
+}
+.remove-entry:hover { color: #d55; background: #2a1a1a; }
+
+/* Штанга — компактный блок в шапке */
+.bar-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
   flex-shrink: 0;
 }
-
-/* Штанга */
-.bar-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 5px;
-}
-.bar-label { font-size: 0.72rem; color: #555; }
+.bar-label { font-size: 0.7rem; color: #666; }
 .bar-btn {
-  padding: 2px 8px;
+  padding: 1px 7px;
   border: 1px solid #444;
   border-radius: 4px;
-  background: #222;
+  background: transparent;
   color: #888;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  line-height: 1.3;
 }
 .bar-btn:hover { border-color: #888; color: #ccc; }
 .bar-btn.active { border-color: #c8a; background: #3a2a1a; color: #c8a; }
-.bar-hint { font-size: 0.7rem; color: #c8a; }
 
 /* Таблица */
 .sets-wrap { margin-bottom: 4px; }
@@ -375,32 +432,61 @@ function createdAtLabel(iso?: string): string {
   width: auto;
 }
 
-.th-num {
-  font-size: 0.7rem;
-  color: #5a8;
-  font-weight: bold;
-  text-align: center;
-  padding: 1px 4px 3px;
-  min-width: 0;
-}
-.th-warmup {
-  color: #4a8ab8;
+.cell-with-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.th-add { width: 24px; padding: 0 2px; }
+.col-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #5a8;
+  font-size: 0.7rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+.col-toggle:hover {
+  border-color: #2a4a3a;
+  background: rgba(90, 170, 136, 0.08);
+}
+.col-toggle.is-warmup {
+  color: #6ab4e8;
+  border-color: #2a4a6a;
+  background: rgba(74, 138, 184, 0.12);
+}
+.col-toggle.is-warmup:hover {
+  background: rgba(74, 138, 184, 0.20);
+}
+
+.td-add-col { width: 32px; padding: 0 4px; vertical-align: middle; }
 
 .add-col-btn {
   background: none;
-  border: 1px dashed #444;
-  border-radius: 4px;
+  border: 1px dashed #3a3a3a;
+  border-radius: 6px;
   color: #555;
   cursor: pointer;
-  font-size: 1rem;
-  width: 24px;
-  height: 24px;
-  line-height: 1;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.1s, color 0.1s, background 0.1s;
 }
-.add-col-btn:hover { border-color: #5a8; color: #5a8; }
+.add-col-btn:hover {
+  border-color: #5a8;
+  color: #5a8;
+  background: rgba(90, 170, 136, 0.08);
+}
 
 /* Основные ячейки */
 .td-main {
@@ -436,34 +522,10 @@ function createdAtLabel(iso?: string): string {
 .td-hint { opacity: 0.25; transition: opacity 0.15s; }
 .td-hint:hover { opacity: 1; }
 
-/* Кнопки под таблицей */
-.table-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.btn-add {
-  padding: 3px 12px;
-  border: 1px dashed #444;
-  border-radius: 4px;
-  background: transparent;
-  color: #888;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-.btn-add:hover { border-color: #5a8; color: #5a8; }
-.btn-burnout { border-color: #c84; color: #c84; }
-.btn-burnout:hover { border-color: #da5 !important; color: #da5 !important; }
-
-/* Заметка */
-.extras {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
+/* Заметка в шапке */
 .note-input {
   flex: 1;
+  min-width: 100px;
   padding: 4px 8px;
   border: 1px solid #333;
   border-radius: 4px;

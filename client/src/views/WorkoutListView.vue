@@ -5,6 +5,7 @@ import { useWorkoutStore } from '@/stores/workoutStore'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { deleteWorkout, exportAll, importAll } from '@/db'
 import { getMuscleGroupIcon, getMuscleGroupImage } from '@/constants/muscleGroupIcons'
+import { Upload, Download, Clock, Copy, X, Plus } from 'lucide-vue-next'
 import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
 dayjs.locale('ru')
@@ -112,10 +113,10 @@ async function doImport() {
     </div>
     <div class="actions-bar">
       <button class="btn btn-primary btn-new" @click="router.push({ name: 'new-workout' })">
-        + Тренировка
+        <Plus class="size-4" /> Тренировка
       </button>
-      <button class="btn btn-sm" @click="doExport">📤</button>
-      <button class="btn btn-sm" @click="doImport">📥</button>
+      <button class="btn btn-sm" title="Экспорт" @click="doExport"><Upload class="size-4" /></button>
+      <button class="btn btn-sm" title="Импорт" @click="doImport"><Download class="size-4" /></button>
     </div>
 
     <div v-if="filtered.length === 0" class="empty">Нет тренировок</div>
@@ -128,7 +129,7 @@ async function doImport() {
             <th class="th-date">Дата</th>
             <th class="th-mg">Мышцы</th>
             <th class="th-ex">Упр.</th>
-            <th class="th-time">⏱</th>
+            <th class="th-time"><Clock class="size-3.5 inline" /></th>
             <th class="th-act"></th>
           </tr>
         </thead>
@@ -161,8 +162,8 @@ async function doImport() {
               <span v-else class="time-none">—</span>
             </td>
             <td class="td-act" @click.stop>
-              <button class="act-btn act-dup" title="Дублировать" @click="duplicate(w.id)">⎘</button>
-              <button class="act-btn act-del" title="Удалить" @click="remove(w.id)">✕</button>
+              <button class="act-btn act-dup" title="Дублировать" @click="duplicate(w.id)"><Copy class="size-3.5" /></button>
+              <button class="act-btn act-del" title="Удалить" @click="remove(w.id)"><X class="size-3.5" /></button>
             </td>
           </tr>
         </tbody>
@@ -329,6 +330,10 @@ async function doImport() {
 }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 6px 12px;
   border: 1px solid #444;
   border-radius: 6px;

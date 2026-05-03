@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { suggestExercises } from '@/suggestions'
+import { TrendingUp } from 'lucide-vue-next'
 
 const router = useRouter()
 
@@ -70,7 +71,7 @@ function addCustom() {
       class="chart-btn"
       title="График прогресса"
       @click.stop="router.push({ name: 'exercise-chart', params: { id: props.modelValue } })"
-    >📈</button>
+    ><TrendingUp class="size-4" /></button>
     <input
       ref="inputEl"
       :value="isOpen ? query : selectedName"

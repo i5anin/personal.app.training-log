@@ -9,6 +9,7 @@ import { useWorkoutStore } from '@/stores/workoutStore'
 import ExerciseEntryCard from '@/components/ExerciseEntryCard.vue'
 import MuscleGroupSelect from '@/components/MuscleGroupSelect.vue'
 import MuscleGroupPhotos from '@/components/MuscleGroupPhotos.vue'
+import { GripVertical, Save } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -296,7 +297,7 @@ onUnmounted(() => {
           @drop="onDrop(i)"
           @dragend="onDragEnd"
         >
-          <div class="drag-handle" title="Перетащить">⠿</div>
+          <div class="drag-handle" title="Перетащить"><GripVertical class="size-4" /></div>
           <div class="entry-card-flex">
             <ExerciseEntryCard
               :entry="entry"
@@ -328,7 +329,8 @@ onUnmounted(() => {
 
   <div class="save-bar" v-if="!loading">
     <button class="btn btn-save" @click="save" :disabled="saving">
-      {{ saving ? 'Сохраняю...' : '💾 Сохранить' }}
+      <Save v-if="!saving" class="size-4" />
+      {{ saving ? 'Сохраняю...' : 'Сохранить' }}
     </button>
   </div>
 
@@ -481,6 +483,10 @@ onUnmounted(() => {
   border-color: #2a7a4a;
   font-size: 1rem;
   font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn-save:hover {

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import type { SetRow } from '@/types'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import { suggestReps, suggestWeight } from '@/suggestions'
+import { X } from 'lucide-vue-next'
 
 const props = defineProps<{
   modelValue: SetRow
@@ -76,13 +77,6 @@ function onRepsEnter() {
 
 <template>
   <div class="set-cell" :class="{ burnout: modelValue.isBurnout, warmup: modelValue.isWarmup }">
-    <!-- Разминка-тоггл -->
-    <button
-      class="warmup-btn"
-      :class="{ active: modelValue.isWarmup }"
-      title="Разминка"
-      @click="emit('update:modelValue', { ...modelValue, isWarmup: !modelValue.isWarmup })"
-    >Р</button>
     <!-- weight -->
     <div class="combo">
       <input
@@ -126,7 +120,7 @@ function onRepsEnter() {
     </div>
 
     <span v-if="barWeight && modelValue.weight" class="real-w">={{ modelValue.weight + barWeight }}</span>
-    <button class="rm" @click="emit('remove')">✕</button>
+    <button class="rm" @click="emit('remove')"><X class="size-3" /></button>
   </div>
 </template>
 
@@ -148,22 +142,6 @@ function onRepsEnter() {
   background: #0e1e2a;
 }
 
-.warmup-btn {
-  background: none;
-  border: 1px solid #2a3a4a;
-  border-radius: 3px;
-  color: #334455;
-  cursor: pointer;
-  font-size: 0.62rem;
-  font-weight: bold;
-  padding: 0 3px;
-  line-height: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  transition: color 0.1s, border-color 0.1s, background 0.1s;
-}
-.warmup-btn:hover { border-color: #4a8ab8; color: #4a8ab8; }
-.warmup-btn.active { border-color: #4a8ab8; background: #1a3a5a; color: #6ab4e8; }
 
 .combo {
   position: relative;

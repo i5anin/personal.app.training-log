@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { nanoid } from 'nanoid'
 import { savePhoto, getPhotoUrl, deletePhoto } from '@/db'
+import { Camera, X } from 'lucide-vue-next'
 
 const props = defineProps<{ photoIds: string[] }>()
 const emit = defineEmits<{ update: [ids: string[]] }>()
@@ -69,11 +70,11 @@ function drawToBlob(img: HTMLImageElement, maxSize: number): Promise<Blob> {
     <div class="photo-previews" v-if="photoIds.length">
       <div v-for="id in photoIds" :key="id" class="photo-thumb">
         <img :src="previews.get(id)" />
-        <button class="photo-remove" @click="removePhoto(id)">✕</button>
+        <button class="photo-remove" @click="removePhoto(id)"><X class="size-3" /></button>
       </div>
     </div>
     <label class="photo-btn">
-      📷
+      <Camera class="size-4" />
       <input type="file" accept="image/*" multiple @change="onFileSelect" hidden />
     </label>
   </div>

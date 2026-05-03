@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { getMuscleGroupIcon, getMuscleGroupImage } from '@/constants/muscleGroupIcons'
+import { Check, X } from 'lucide-vue-next'
 
 const props = defineProps<{
   modelValue: string
@@ -103,8 +104,8 @@ function cancel() {
           @keydown.enter.prevent="confirm"
           @keydown.escape.prevent="cancel"
         />
-        <button class="btn-confirm" @click="confirm">✓</button>
-        <button class="btn-cancel" @click="cancel">✕</button>
+        <button class="btn-confirm" @click="confirm"><Check class="size-4" /></button>
+        <button class="btn-cancel" @click="cancel"><X class="size-4" /></button>
       </div>
     </template>
   </div>

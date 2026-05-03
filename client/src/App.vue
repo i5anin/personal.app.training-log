@@ -1,14 +1,33 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import WorkoutListView from '@/views/WorkoutListView.vue'
 import StatsView from '@/views/StatsView.vue'
 import CatalogView from '@/views/CatalogView.vue'
+import { Button } from '@/components/ui/button'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { Dumbbell, LineChart, Library } from 'lucide-vue-next'
 
 const catalogStore = useCatalogStore()
 const workoutStore = useWorkoutStore()
-const activePanel = ref<'workouts' | 'stats' | 'catalog'>('workouts')
+const route = useRoute()
+const router = useRouter()
+
+type Tab = 'workouts' | 'stats' | 'catalog'
+const activePanel = computed<Tab>(() => (route.meta.tab as Tab) ?? 'workouts')
+
+// Маршруты, которые показывают что-то в правой панели
+const RIGHT_PANEL_ROUTES = new Set(['new-workout', 'edit-workout', 'exercise-chart'])
+const hasRightContent = computed(() => RIGHT_PANEL_ROUTES.has(route.name as string))
+
+function goTab(tab: Tab) {
+  if (activePanel.value === tab) return
+  if (tab === 'workouts') router.push({ name: 'list' })
+  else if (tab === 'stats') router.push({ name: 'stats' })
+  else router.push({ name: 'catalog' })
+}
 
 // ── Resizable панель ──
 const MIN_W = 240, MAX_W = 900
@@ -42,48 +61,81 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="app-layout">
-    <!-- Левая панель: список -->
-    <aside
-      class="panel-list"
-      :class="{ 'panel-full': activePanel === 'catalog' }"
-      :style="activePanel !== 'catalog' ? { width: panelWidth + 'px' } : {}"
-    >
-      <div class="panel-list-header">
-        <span class="logo">💪 Gym+</span>
-        <div class="panel-tabs">
-          <button class="ptab" :class="{ active: activePanel === 'workouts' }" @click="activePanel = 'workouts'" title="Тренировки">📋</button>
-          <button class="ptab" :class="{ active: activePanel === 'stats' }" @click="activePanel = 'stats'" title="Прогресс">📊</button>
-          <button class="ptab" :class="{ active: activePanel === 'catalog' }" @click="activePanel = 'catalog'" title="Каталог">📚</button>
-        </div>
-      </div>
-      <div class="panel-list-body">
-        <WorkoutListView v-if="activePanel === 'workouts'" />
-        <StatsView v-else-if="activePanel === 'stats'" />
-        <CatalogView v-else />
-      </div>
-    </aside>
+  <TooltipProvider :delay-duration="300">
+  <div class="app-shell">
+    <!-- ─── Верхняя панель: лого + табы (всегда на одном месте) ─── -->
+    <header class="topbar">
+      <span class="logo">
+        <Dumbbell class="size-5 text-primary" />
+        <span>Gym+</span>
+      </span>
+      <nav class="flex items-center gap-1">
+        <Button
+          :variant="activePanel === 'workouts' ? 'secondary' : 'ghost'"
+          size="sm"
+          @click="goTab('workouts')"
+        >
+          <Dumbbell class="size-4" />
+          <span class="hidden sm:inline">Тренировки</span>
+        </Button>
+        <Button
+          :variant="activePanel === 'stats' ? 'secondary' : 'ghost'"
+          size="sm"
+          @click="goTab('stats')"
+        >
+          <LineChart class="size-4" />
+          <span class="hidden sm:inline">Прогресс</span>
+        </Button>
+        <Button
+          :variant="activePanel === 'catalog' ? 'secondary' : 'ghost'"
+          size="sm"
+          @click="goTab('catalog')"
+        >
+          <Library class="size-4" />
+          <span class="hidden sm:inline">Каталог</span>
+        </Button>
+      </nav>
+    </header>
 
-    <!-- Resize handle (везде кроме каталога) -->
-    <div
-      v-if="activePanel !== 'catalog'"
-      class="resize-handle"
-      @mousedown="startDrag"
-      title="Тяни чтобы изменить ширину"
-    ></div>
-
-    <!-- Правая панель: редактор / графики (везде кроме каталога) -->
-    <main v-if="activePanel !== 'catalog'" class="panel-editor">
-      <RouterView v-if="$route.name !== 'list'" />
-      <div v-else class="editor-empty">
-        <div class="editor-empty-inner">
-          <div class="editor-empty-icon">{{ activePanel === 'stats' ? '📊' : '🏋️' }}</div>
-          <div v-if="activePanel === 'stats'">Выберите упражнение чтобы увидеть график</div>
-          <div v-else>Выберите тренировку или создайте новую</div>
+    <div class="app-layout">
+      <!-- Левая панель: список -->
+      <aside
+        class="panel-list"
+        :class="{ 'panel-full': activePanel === 'catalog' }"
+        :style="activePanel !== 'catalog' ? { width: panelWidth + 'px' } : {}"
+      >
+        <div class="panel-list-body">
+          <WorkoutListView v-if="activePanel === 'workouts'" />
+          <StatsView v-else-if="activePanel === 'stats'" />
+          <CatalogView v-else />
         </div>
-      </div>
-    </main>
+      </aside>
+
+      <!-- Resize handle (везде кроме каталога) -->
+      <div
+        v-if="activePanel !== 'catalog'"
+        class="resize-handle"
+        @mousedown="startDrag"
+        title="Тяни чтобы изменить ширину"
+      ></div>
+
+      <!-- Правая панель: редактор / графики (везде кроме каталога) -->
+      <main v-if="activePanel !== 'catalog'" class="panel-editor">
+        <RouterView v-if="hasRightContent" />
+        <div v-else class="editor-empty">
+          <div class="editor-empty-inner">
+            <div class="editor-empty-icon">
+            <LineChart v-if="activePanel === 'stats'" class="size-10" />
+            <Dumbbell v-else class="size-10" />
+          </div>
+            <div v-if="activePanel === 'stats'">Выберите упражнение чтобы увидеть график</div>
+            <div v-else>Выберите тренировку или создайте новую</div>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
+  </TooltipProvider>
 </template>
 
 <style>
@@ -106,9 +158,37 @@ html, body {
 </style>
 
 <style scoped>
-.app-layout {
+.app-shell {
   display: flex;
+  flex-direction: column;
   height: 100vh;
+}
+
+/* ─── Topbar ─── */
+.topbar {
+  flex-shrink: 0;
+  height: 52px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 14px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.app-layout {
+  flex: 1;
+  display: flex;
+  min-height: 0;
 }
 
 /* ─── Левая панель ─── */
@@ -116,10 +196,11 @@ html, body {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: #161616;
+  background: var(--card);
+  border-right: 1px solid var(--border);
 }
 
-/* В режимах каталога/прогресса панель растягивается на всё окно */
+/* В режиме каталога панель растягивается на всё окно */
 .panel-list.panel-full {
   flex: 1;
   width: 100%;
@@ -137,13 +218,13 @@ html, body {
 .resize-handle {
   flex-shrink: 0;
   width: 4px;
-  background: #2a2a2a;
+  background: transparent;
   cursor: col-resize;
   transition: background 0.15s;
   position: relative;
 }
-.resize-handle:hover { background: #5a8; }
-.resize-handle:active { background: #5a8; }
+.resize-handle:hover { background: var(--primary); }
+.resize-handle:active { background: var(--primary); }
 .resize-handle::before {
   content: '';
   position: absolute;
@@ -151,26 +232,6 @@ html, body {
   left: -3px;
   right: -3px;
   bottom: 0;
-}
-
-.panel-list-header {
-  flex-shrink: 0;
-  padding: 10px 12px;
-  border-bottom: 1px solid #2a2a2a;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.logo {
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-.panel-tabs {
-  display: flex;
-  gap: 4px;
 }
 
 .ptab {

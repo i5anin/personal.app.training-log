@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useWorkoutStore } from '@/stores/workoutStore'
 import MgIcon from '@/components/MgIcon.vue'
+import { ChevronDown, ChevronUp, X, Plus } from 'lucide-vue-next'
 import type { Exercise, MuscleGroup } from '@/types'
 
 const catalogStore = useCatalogStore()
@@ -146,7 +147,7 @@ async function addGroup() {
           class="add-input"
           @keydown.enter="addEx"
         />
-        <button class="btn-add" @click="addEx" :disabled="!newExName.trim() || newExMgs.length === 0">+</button>
+        <button class="btn-add" @click="addEx" :disabled="!newExName.trim() || newExMgs.length === 0"><Plus class="size-4" /></button>
       </div>
       <div class="add-mgs">
         <button
@@ -188,12 +189,12 @@ async function addGroup() {
               @click="toggleExpand(ex.id)"
             >
               <MgIcon v-for="id in ex.muscleGroups" :key="id" :id="id" :size="18" />
-              <span class="expand-arrow">{{ expandedExId === ex.id ? '▴' : '▾' }}</span>
+              <component :is="expandedExId === ex.id ? ChevronUp : ChevronDown" class="size-3 text-muted-foreground" />
             </button>
             <span class="ex-usage" :title="`Использовано в ${exerciseUsage.get(ex.id) ?? 0} тренировках`">
               {{ exerciseUsage.get(ex.id) ?? 0 }}×
             </span>
-            <button class="del-btn" title="Удалить" @click="deleteEx(ex)">✕</button>
+            <button class="del-btn" title="Удалить" @click="deleteEx(ex)"><X class="size-3.5" /></button>
           </div>
           <!-- Раскрытая часть: переключатели групп -->
           <div v-if="expandedExId === ex.id" class="ex-edit">
@@ -215,7 +216,7 @@ async function addGroup() {
       <div class="add-form">
         <input v-model="newGroupLabel" placeholder="Название (Грудь)" class="add-input" />
         <input v-model="newGroupId" placeholder="id (chest)" class="add-input add-id" />
-        <button class="btn-add" @click="addGroup" :disabled="!newGroupLabel.trim()">+</button>
+        <button class="btn-add" @click="addGroup" :disabled="!newGroupLabel.trim()"><Plus class="size-4" /></button>
       </div>
 
       <!-- Список -->
